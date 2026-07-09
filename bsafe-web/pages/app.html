@@ -1,0 +1,778 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>bSafe — Home</title>
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@latest/tabler-icons.min.css" />
+<link rel="stylesheet" href="../css/global.css" />
+<style>
+  body { background: var(--gray-100); }
+  .app-shell { max-width: 460px; margin: 0 auto; background: var(--gray-50); min-height: 100vh; display: flex; flex-direction: column; box-shadow: var(--shadow-lg); position: relative; }
+
+  .app-header { background: var(--rose); color: #fff; padding: 18px 20px 14px; display: flex; align-items: center; justify-content: space-between; }
+  .app-logo { font-family: var(--font-display); font-size: 22px; font-weight: 700; }
+  .app-tagline { font-size: 10.5px; color: rgba(255,255,255,0.75); }
+  .header-icon-btn { width: 34px; height: 34px; border-radius: 50%; background: rgba(255,255,255,0.14); display: flex; align-items: center; justify-content: center; color: #fff; font-size: 17px; }
+
+  .status-bar { background: var(--teal-light); padding: 8px 18px; display: flex; align-items: center; gap: 8px; font-size: 12px; color: var(--teal-deep); font-weight: 500; }
+  .status-bar.alert-active { background: var(--rose-light); color: var(--rose-deep); }
+
+  .app-view { display: none; flex: 1; overflow-y: auto; padding-bottom: 20px; }
+  .app-view.active { display: block; }
+
+  /* SOS section */
+  .sos-section { display: flex; flex-direction: column; align-items: center; padding: 30px 20px 16px; gap: 12px; }
+  .section-label { font-size: 11px; font-weight: 600; color: var(--gray-400); letter-spacing: 0.07em; text-transform: uppercase; }
+  .sos-ring { position: relative; width: 190px; height: 190px; display: flex; align-items: center; justify-content: center; cursor: pointer; user-select: none; -webkit-tap-highlight-color: transparent; }
+  .sos-svg { position: absolute; inset: 0; width: 100%; height: 100%; transform: rotate(-90deg); pointer-events: none; }
+  .sos-track { fill: none; stroke: var(--rose-light); stroke-width: 5; }
+  .sos-progress { fill: none; stroke: var(--rose); stroke-width: 5; stroke-linecap: round; transition: stroke-dashoffset 0.08s linear; }
+  .sos-inner { width: 158px; height: 158px; border-radius: 50%; background: var(--rose); display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 4px; transition: transform 0.1s, background 0.3s; z-index: 1; }
+  .sos-inner.holding { transform: scale(0.96); animation: sosPulse 0.7s ease-in-out infinite; }
+  .sos-inner.triggered { background: var(--rose-dark); animation: none; cursor: default; }
+  @keyframes sosPulse { 0%,100% { box-shadow: 0 0 0 0 rgba(232,57,74,0.45); } 50% { box-shadow: 0 0 0 22px rgba(232,57,74,0); } }
+  .sos-text { font-family: var(--font-display); font-size: 38px; font-weight: 700; color: #fff; line-height: 1; }
+  .sos-sub { font-size: 10px; color: rgba(255,255,255,0.75); letter-spacing: 0.06em; }
+  .sos-hint { font-size: 12.5px; color: var(--gray-600); text-align: center; max-width: 250px; }
+  .cancel-alert-btn { display: flex; align-items: center; gap: 6px; font-size: 13px; color: var(--rose); background: var(--rose-light); border: 1px solid var(--rose); border-radius: var(--r-full); padding: 7px 18px; font-weight: 600; }
+
+  .alert-banner { margin: 0 16px 4px; background: var(--rose-light); border: 1px solid var(--rose); border-radius: var(--r-md); padding: 12px 14px; display: flex; gap: 10px; align-items: flex-start; }
+  .alert-banner i { font-size: 18px; color: var(--rose); margin-top: 1px; flex-shrink: 0; }
+  .alert-banner-title { font-size: 13px; font-weight: 700; color: var(--rose-deep); }
+  .alert-banner-msg { font-size: 12px; color: var(--rose-dark); margin-top: 2px; line-height: 1.5; }
+
+  .section { padding: 16px 16px 8px; }
+  .section-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 10px; }
+  .section-action { font-size: 12px; color: var(--rose); font-weight: 600; }
+
+  .responder-list { display: flex; flex-direction: column; gap: 8px; }
+  .responder-card { display: flex; align-items: center; gap: 10px; padding: 10px 12px; border: 1px solid var(--teal); border-radius: var(--r-md); background: var(--teal-light); }
+  .responder-card i.lead { font-size: 18px; color: var(--teal); flex-shrink: 0; }
+  .responder-info { flex: 1; }
+  .responder-name { font-size: 13px; font-weight: 600; color: var(--teal-deep); }
+  .responder-dist { font-size: 11px; color: var(--teal); margin-top: 2px; }
+  .responder-badge { font-size: 10px; font-weight: 700; padding: 3px 10px; border-radius: var(--r-full); background: var(--teal); color: #fff; flex-shrink: 0; }
+
+  .contacts-list { display: flex; flex-direction: column; gap: 8px; }
+  .contact-card { display: flex; align-items: center; gap: 12px; padding: 10px 12px; border: 1px solid var(--gray-200); border-radius: var(--r-md); background: var(--white); }
+  .contact-avatar { width: 38px; height: 38px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 14px; font-weight: 700; flex-shrink: 0; }
+  .contact-info { flex: 1; min-width: 0; }
+  .contact-name { font-size: 13px; font-weight: 600; }
+  .contact-rel { font-size: 11px; color: var(--gray-400); margin-top: 2px; }
+  .contact-remove { color: var(--rose); font-size: 16px; flex-shrink: 0; }
+
+  .resources-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+  .resource-card { padding: 12px 14px; border: 1px solid var(--gray-200); border-radius: var(--r-md); background: var(--white); display: flex; flex-direction: column; gap: 4px; cursor: pointer; transition: border-color 0.15s; }
+  .resource-card:hover { border-color: var(--gray-400); }
+  .resource-label { font-size: 13px; font-weight: 600; }
+  .resource-count { font-size: 11px; color: var(--gray-400); }
+
+  /* Map view */
+  .map-container { height: 280px; background: #e8f4e8; }
+  .legend { display: flex; gap: 16px; padding: 10px 16px; border-bottom: 1px solid var(--gray-100); flex-wrap: wrap; background: var(--white); }
+  .legend-item { display: flex; align-items: center; gap: 5px; font-size: 12px; color: var(--gray-600); }
+  .legend-dot { width: 8px; height: 8px; border-radius: 50%; flex-shrink: 0; }
+  .nearby-card { display: flex; align-items: center; gap: 10px; padding: 10px 12px; border: 1px solid var(--gray-200); border-radius: var(--r-md); background: var(--white); margin-bottom: 8px; }
+  .nearby-dot { width: 8px; height: 8px; border-radius: 50%; flex-shrink: 0; }
+  .nearby-info { flex: 1; }
+  .nearby-name { font-size: 13px; font-weight: 600; }
+  .nearby-dist { font-size: 11px; color: var(--gray-400); margin-top: 2px; }
+
+  /* History view */
+  .kpi-row { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; padding: 16px; }
+  .kpi-card { background: var(--white); border: 1px solid var(--gray-200); border-radius: var(--r-md); padding: 12px; display: flex; flex-direction: column; align-items: center; gap: 3px; }
+  .kpi-value { font-family: var(--font-display); font-size: 22px; font-weight: 700; color: var(--rose); }
+  .kpi-label { font-size: 10.5px; color: var(--gray-400); text-align: center; }
+  .history-item { border: 1px solid var(--gray-200); border-radius: var(--r-md); padding: 14px; background: var(--white); display: flex; flex-direction: column; gap: 8px; margin-bottom: 10px; }
+  .history-item.active-status { background: var(--rose-light); border-color: var(--rose); }
+  .history-top { display: flex; align-items: center; justify-content: space-between; }
+  .history-row { display: flex; align-items: flex-start; gap: 8px; font-size: 12.5px; color: var(--gray-800); }
+  .history-row i { font-size: 15px; color: var(--gray-400); margin-top: 1px; flex-shrink: 0; }
+
+  /* Profile view */
+  .profile-avatar-section { display: flex; align-items: center; gap: 16px; padding: 20px 16px; border-bottom: 1px solid var(--gray-100); }
+  .profile-avatar { width: 60px; height: 60px; border-radius: 50%; background: var(--rose-light); color: var(--rose-deep); font-size: 20px; font-weight: 700; display: flex; align-items: center; justify-content: center; flex-shrink: 0; }
+  .profile-name { font-size: 16px; font-weight: 700; }
+  .profile-phone { font-size: 12px; color: var(--gray-400); margin-top: 3px; }
+  .safety-score-card { margin: 16px; background: var(--rose); border-radius: var(--r-lg); padding: 16px 20px; display: flex; align-items: center; justify-content: space-between; }
+  .safety-score-value { font-family: var(--font-display); font-size: 38px; font-weight: 700; color: #fff; line-height: 1; }
+  .settings-group { padding: 16px; border-bottom: 1px solid var(--gray-100); }
+  .settings-group-label { font-size: 11px; font-weight: 600; color: var(--gray-400); letter-spacing: 0.06em; text-transform: uppercase; margin-bottom: 12px; }
+  .setting-row { display: flex; align-items: center; justify-content: space-between; padding: 10px 0; border-bottom: 1px solid var(--gray-100); gap: 12px; }
+  .setting-row:last-child { border-bottom: none; }
+  .setting-name { font-size: 13px; font-weight: 600; }
+  .setting-desc { font-size: 11px; color: var(--gray-400); margin-top: 2px; }
+
+  .menu-row { display: flex; align-items: center; gap: 12px; padding: 13px 16px; text-align: left; width: 100%; transition: background 0.1s; }
+  .menu-row:hover { background: var(--gray-100); }
+  .menu-icon-wrap { width: 36px; height: 36px; border-radius: var(--r-sm); background: var(--gray-100); border: 1px solid var(--gray-200); display: flex; align-items: center; justify-content: center; flex-shrink: 0; }
+  .menu-icon-wrap i { font-size: 18px; color: var(--gray-600); }
+  .menu-text { flex: 1; }
+  .menu-label { font-size: 13px; font-weight: 600; }
+  .menu-sub { font-size: 11px; color: var(--gray-400); margin-top: 2px; }
+  .panel-content { padding: 4px 16px 18px; display: flex; flex-direction: column; gap: 14px; border-bottom: 1px solid var(--gray-100); }
+  .contact-add-row { display: flex; gap: 6px; }
+  .contact-add-row input { flex: 1; min-width: 0; padding: 9px 10px; border: 1.5px solid var(--gray-200); border-radius: var(--r-md); font-size: 12.5px; outline: none; }
+
+  /* Bottom nav */
+  .bottom-nav { display: flex; border-top: 1px solid var(--gray-200); background: var(--white); padding: 8px 8px 16px; gap: 4px; }
+  .nav-item { flex: 1; display: flex; flex-direction: column; align-items: center; gap: 3px; padding: 6px 4px; border-radius: var(--r-md); color: var(--gray-400); font-size: 10.5px; font-weight: 500; transition: background 0.15s, color 0.15s; }
+  .nav-item i { font-size: 21px; }
+  .nav-item:hover { background: var(--gray-100); }
+  .nav-item.active { color: var(--rose); }
+</style>
+</head>
+<body>
+
+<div class="app-shell">
+  <header class="app-header">
+    <div>
+      <div class="app-logo">bSafe</div>
+      <div class="app-tagline">Your safety, always</div>
+    </div>
+    <div style="display:flex;gap:8px;">
+      <button class="header-icon-btn" id="settings-btn" aria-label="Settings"><i class="ti ti-settings" aria-hidden="true"></i></button>
+      <button class="header-icon-btn" id="bell-btn" aria-label="Notifications"><i class="ti ti-bell" aria-hidden="true"></i></button>
+    </div>
+  </header>
+
+  <div class="status-bar" id="status-bar">
+    <span class="pulse-dot" id="status-dot"></span>
+    <span id="status-text">Loading…</span>
+  </div>
+
+  <!-- ===== HOME VIEW ===== -->
+  <main class="app-view active" id="view-home">
+    <section class="sos-section">
+      <p class="section-label">Emergency SOS</p>
+      <div class="sos-ring" id="sos-ring">
+        <svg viewBox="0 0 180 180" class="sos-svg">
+          <circle class="sos-track" cx="90" cy="90" r="80" />
+          <circle class="sos-progress" cx="90" cy="90" r="80" id="sos-progress-circle" />
+        </svg>
+        <div class="sos-inner" id="sos-inner">
+          <span class="sos-text" id="sos-text">SOS</span>
+          <span class="sos-sub" id="sos-sub">HOLD TO ALERT</span>
+        </div>
+      </div>
+      <p class="sos-hint" id="sos-hint">Hold button for 3 seconds to send an emergency alert</p>
+      <button class="cancel-alert-btn hidden" id="cancel-alert-btn"><i class="ti ti-x" aria-hidden="true"></i> Cancel Alert</button>
+    </section>
+
+    <div class="alert-banner hidden" id="alert-banner">
+      <i class="ti ti-alert-triangle" aria-hidden="true"></i>
+      <div>
+        <div class="alert-banner-title">Alert sent — help is coming!</div>
+        <div class="alert-banner-msg" id="alert-banner-msg"></div>
+      </div>
+    </div>
+
+    <section class="section hidden" id="responders-section">
+      <p class="section-label">Responding Now</p>
+      <div class="responder-list" id="responder-list"></div>
+    </section>
+
+    <section class="section">
+      <div class="section-header">
+        <p class="section-label">Emergency Contacts</p>
+        <button class="section-action" id="goto-contacts-btn">+ Add</button>
+      </div>
+      <div class="contacts-list" id="contacts-list"></div>
+    </section>
+
+    <section class="section">
+      <div class="section-header">
+        <p class="section-label">Nearby Resources</p>
+        <button class="section-action" id="goto-map-from-home">View map</button>
+      </div>
+      <div class="resources-grid" id="resources-grid"></div>
+    </section>
+  </main>
+
+  <!-- ===== MAP VIEW ===== -->
+  <main class="app-view" id="view-map">
+    <div class="map-container" id="map-container"></div>
+    <div class="legend">
+      <div class="legend-item"><span class="legend-dot" style="background:var(--rose);"></span>You</div>
+      <div class="legend-item"><span class="legend-dot" style="background:var(--teal);"></span>Volunteers</div>
+      <div class="legend-item"><span class="legend-dot" style="background:var(--amber);"></span>Safe zones</div>
+    </div>
+    <section class="section">
+      <p class="section-label">Nearby Volunteers</p>
+      <div id="map-volunteers-list"></div>
+    </section>
+    <section class="section">
+      <p class="section-label">Safety Zones & Resources</p>
+      <div id="map-zones-list"></div>
+    </section>
+  </main>
+
+  <!-- ===== HISTORY VIEW ===== -->
+  <main class="app-view" id="view-history">
+    <div class="kpi-row" id="history-kpis"></div>
+    <section class="section">
+      <div id="history-list"></div>
+    </section>
+  </main>
+
+  <!-- ===== PROFILE VIEW ===== -->
+  <main class="app-view" id="view-profile">
+    <div class="profile-avatar-section">
+      <div class="profile-avatar" id="profile-avatar"></div>
+      <div>
+        <p class="profile-name" id="profile-name"></p>
+        <p class="profile-phone" id="profile-phone"></p>
+      </div>
+    </div>
+
+    <div class="safety-score-card">
+      <div>
+        <p style="font-size:11px;color:rgba(255,255,255,0.7);letter-spacing:0.05em;text-transform:uppercase;margin-bottom:4px;">Safety Score</p>
+        <p class="safety-score-value" id="safety-score-value">—</p>
+        <p style="font-size:11px;color:rgba(255,255,255,0.75);margin-top:4px;" id="safety-score-sub"></p>
+      </div>
+    </div>
+
+    <div class="settings-group">
+      <p class="settings-group-label">Quick Settings</p>
+      <div class="setting-row">
+        <div><p class="setting-name">Notifications</p><p class="setting-desc">Alert sounds & push notifications</p></div>
+        <button class="toggle on" id="toggle-notifs"><span class="toggle-thumb"></span></button>
+      </div>
+      <div class="setting-row">
+        <div><p class="setting-name">Location Sharing</p><p class="setting-desc">Share live location during alerts</p></div>
+        <button class="toggle on" id="toggle-location"><span class="toggle-thumb"></span></button>
+      </div>
+    </div>
+
+    <div id="profile-menu"></div>
+
+    <div style="padding:16px;">
+      <button class="btn btn-danger btn-block" id="signout-btn"><i class="ti ti-logout" aria-hidden="true"></i> Sign Out</button>
+    </div>
+  </main>
+
+  <nav class="bottom-nav">
+    <button class="nav-item active" data-view="home"><i class="ti ti-home" aria-hidden="true"></i>Home</button>
+    <button class="nav-item" data-view="map"><i class="ti ti-map-pin" aria-hidden="true"></i>Map</button>
+    <button class="nav-item" data-view="history"><i class="ti ti-history" aria-hidden="true"></i>History</button>
+    <button class="nav-item" data-view="profile"><i class="ti ti-user" aria-hidden="true"></i>Profile</button>
+  </nav>
+</div>
+
+<script src="../js/store.js"></script>
+<script src="../js/ui.js"></script>
+<script src="../js/maps.js"></script>
+<script>
+const UI = window.bsafeUI;
+
+let user = null;
+let myPos = { lat: 28.5708, lng: 77.3260 };
+let activeAlert = null;
+let pollTimer = null;
+
+/* ───────────── Init ───────────── */
+(async function init() {
+  user = Store.requireAuth(['woman']);
+  if (!user) return;
+
+  myPos = await UI.getCurrentPosition();
+  await Store.updateLocation(user.id, myPos);
+
+  bindNav();
+  bindSOS();
+  bindSettingsMenu();
+
+  await refreshHome();
+  startPolling();
+})();
+
+function startPolling() {
+  pollTimer = setInterval(async () => {
+    const av = await Store.getMyActiveAlert(user.id);
+    if (av && (!activeAlert || av.status !== activeAlert.status)) {
+      activeAlert = av;
+      renderAlertState();
+    }
+  }, 2500);
+}
+
+/* ───────────── Navigation ───────────── */
+function bindNav() {
+  UI.qsa('.nav-item').forEach(btn => {
+    btn.addEventListener('click', () => switchView(btn.dataset.view));
+  });
+  UI.qs('#goto-contacts-btn').addEventListener('click', () => switchView('profile', 'contacts'));
+  UI.qs('#goto-map-from-home').addEventListener('click', () => switchView('map'));
+}
+
+async function switchView(view, openPanel) {
+  UI.qsa('.app-view').forEach(v => v.classList.remove('active'));
+  UI.qsa('.nav-item').forEach(n => n.classList.toggle('active', n.dataset.view === view));
+  UI.qs(`#view-${view}`).classList.add('active');
+
+  if (view === 'map') await refreshMap();
+  if (view === 'history') await refreshHistory();
+  if (view === 'profile') await refreshProfile(openPanel);
+}
+
+/* ───────────── SOS ───────────── */
+const HOLD_MS = 3000;
+const CIRCUMFERENCE = 2 * Math.PI * 80;
+let holdStart = null;
+let rafId = null;
+
+function bindSOS() {
+  const ring = UI.qs('#sos-ring');
+  const progressCircle = UI.qs('#sos-progress-circle');
+  progressCircle.style.strokeDasharray = CIRCUMFERENCE;
+  progressCircle.style.strokeDashoffset = CIRCUMFERENCE;
+
+  function setProgress(p) {
+    progressCircle.style.strokeDashoffset = CIRCUMFERENCE * (1 - p);
+  }
+
+  function startHold(e) {
+    if (activeAlert) return;
+    e.preventDefault();
+    holdStart = Date.now();
+    UI.qs('#sos-inner').classList.add('holding');
+    UI.qs('#sos-hint').textContent = 'Keep holding… release to cancel';
+    rafId = requestAnimationFrame(tick);
+  }
+
+  function tick() {
+    if (!holdStart) return;
+    const elapsed = Date.now() - holdStart;
+    const p = Math.min(elapsed / HOLD_MS, 1);
+    setProgress(p);
+    if (p < 1) {
+      rafId = requestAnimationFrame(tick);
+    } else {
+      triggerSOS();
+    }
+  }
+
+  function cancelHold() {
+    if (activeAlert) return;
+    holdStart = null;
+    cancelAnimationFrame(rafId);
+    UI.qs('#sos-inner').classList.remove('holding');
+    setProgress(0);
+    UI.qs('#sos-hint').textContent = 'Hold button for 3 seconds to send an emergency alert';
+  }
+
+  ring.addEventListener('mousedown', startHold);
+  ring.addEventListener('touchstart', startHold, { passive: false });
+  window.addEventListener('mouseup', cancelHold);
+  window.addEventListener('touchend', cancelHold);
+
+  UI.qs('#cancel-alert-btn').addEventListener('click', async () => {
+    if (!activeAlert) return;
+    await Store.cancelAlert(activeAlert.id, user.id);
+    activeAlert = null;
+    UI.showToast('info', 'Alert cancelled', 'Your emergency alert has been cancelled.');
+    resetSOSVisual();
+    renderAlertState();
+  });
+}
+
+async function triggerSOS() {
+  holdStart = null;
+  cancelAnimationFrame(rafId);
+
+  myPos = await UI.getCurrentPosition();
+  const alert = await Store.createAlert(user.id, {
+    lat: myPos.lat, lng: myPos.lng,
+    address: user.safetyProfile?.address || 'Current Location (GPS)',
+    notes: 'Live SOS triggered from bSafe app.',
+  });
+  activeAlert = alert;
+
+  UI.qs('#sos-inner').classList.remove('holding');
+  UI.qs('#sos-inner').classList.add('triggered');
+  UI.qs('#sos-text').textContent = 'SENT';
+  UI.qs('#sos-sub').textContent = 'ALERT ACTIVE';
+  UI.qs('#sos-progress-circle').style.strokeDashoffset = 0;
+  UI.qs('#sos-hint').textContent = 'Emergency alert sent. Help is on the way.';
+
+  UI.showToast('error', 'SOS Alert Sent!', 'Nearby volunteers and your contacts have been notified.');
+  renderAlertState();
+}
+
+function resetSOSVisual() {
+  UI.qs('#sos-inner').classList.remove('triggered', 'holding');
+  UI.qs('#sos-text').textContent = 'SOS';
+  UI.qs('#sos-sub').textContent = 'HOLD TO ALERT';
+  UI.qs('#sos-progress-circle').style.strokeDashoffset = CIRCUMFERENCE;
+  UI.qs('#sos-hint').textContent = 'Hold button for 3 seconds to send an emergency alert';
+}
+
+/* ───────────── Home view ───────────── */
+async function refreshHome() {
+  activeAlert = await Store.getMyActiveAlert(user.id);
+  if (activeAlert) {
+    UI.qs('#sos-inner').classList.add('triggered');
+    UI.qs('#sos-text').textContent = 'SENT';
+    UI.qs('#sos-sub').textContent = 'ALERT ACTIVE';
+    UI.qs('#sos-progress-circle').style.strokeDashoffset = 0;
+  }
+  renderAlertState();
+
+  const contacts = await Store.getContacts(user.id);
+  renderContacts(contacts);
+
+  const volunteers = await Store.getAllVolunteers();
+  const zones = await Store.getSafeZones();
+  renderResourcesGrid(volunteers, zones);
+}
+
+function renderAlertState() {
+  const statusBar = UI.qs('#status-bar');
+  const statusText = UI.qs('#status-text');
+  const statusDot = UI.qs('#status-dot');
+  const banner = UI.qs('#alert-banner');
+  const cancelBtn = UI.qs('#cancel-alert-btn');
+  const respondersSection = UI.qs('#responders-section');
+
+  if (activeAlert) {
+    statusBar.classList.add('alert-active');
+    statusDot.classList.add('red');
+    cancelBtn.classList.remove('hidden');
+
+    const statusLabels = {
+      active: 'Searching for nearby volunteers…',
+      accepted: 'A volunteer has accepted your alert',
+      en_route: 'Volunteer en route to your location',
+      arrived: 'Volunteer has arrived',
+      assisting: 'Volunteer is assisting you',
+    };
+    statusText.textContent = `EMERGENCY ALERT ACTIVE · ${statusLabels[activeAlert.status] || 'Active'}`;
+
+    banner.classList.remove('hidden');
+    UI.qs('#alert-banner-msg').textContent = activeAlert.responder
+      ? `${activeAlert.responder.user?.name || 'A volunteer'} is responding · Live location shared`
+      : 'Notifying nearby volunteers · Live location shared';
+
+    if (activeAlert.responder) {
+      respondersSection.classList.remove('hidden');
+      const r = activeAlert.responder;
+      const dist = myPos && r.location ? UI.distanceKm(myPos, r.user?.location || myPos) : null;
+      UI.qs('#responder-list').innerHTML = `
+        <div class="responder-card">
+          <i class="ti ti-user-check lead" aria-hidden="true"></i>
+          <div class="responder-info">
+            <p class="responder-name">${UI.escapeHtml(r.user?.name || 'Volunteer')}</p>
+            <p class="responder-dist">${formatStatusLabel(activeAlert.status)}</p>
+          </div>
+          <span class="responder-badge">${formatStatusLabel(activeAlert.status)}</span>
+        </div>`;
+    } else {
+      respondersSection.classList.add('hidden');
+    }
+  } else {
+    statusBar.classList.remove('alert-active');
+    statusDot.classList.remove('red');
+    statusText.textContent = 'Location shared · Verified volunteers nearby';
+    banner.classList.add('hidden');
+    cancelBtn.classList.add('hidden');
+    respondersSection.classList.add('hidden');
+    resetSOSVisual();
+  }
+}
+
+function formatStatusLabel(status) {
+  const map = { active: 'Searching', accepted: 'Accepted', en_route: 'En Route', arrived: 'Arrived', assisting: 'Assisting', resolved: 'Resolved' };
+  return map[status] || status;
+}
+
+function renderContacts(contacts) {
+  const el = UI.qs('#contacts-list');
+  if (contacts.length === 0) {
+    el.innerHTML = `<div class="empty-state"><i class="ti ti-users" aria-hidden="true"></i><p>No emergency contacts yet. Add some for faster response.</p></div>`;
+    return;
+  }
+  const colors = [{bg:'#DCF5EC',c:'#064D35'},{bg:'#DBEAFE',c:'#1E3A7A'},{bg:'#FEF3DC',c:'#6B3A00'}];
+  el.innerHTML = contacts.map((c, i) => {
+    const col = colors[i % colors.length];
+    return `
+      <div class="contact-card">
+        <div class="contact-avatar" style="background:${col.bg};color:${col.c};">${UI.initials(c.name)}</div>
+        <div class="contact-info">
+          <p class="contact-name">${UI.escapeHtml(c.name)}</p>
+          <p class="contact-rel">${UI.escapeHtml(c.relation || '')}${c.relation ? ' · ' : ''}${UI.escapeHtml(c.phone)}</p>
+        </div>
+      </div>`;
+  }).join('');
+}
+
+function renderResourcesGrid(volunteers, zones) {
+  const available = volunteers.filter(v => v.verification === 'verified' && v.availability === 'available').length;
+  const activeZones = zones.filter(z => z.status === 'active').length;
+  UI.qs('#resources-grid').innerHTML = `
+    <div class="resource-card" onclick="document.querySelector('[data-view=map]').click()">
+      <i class="ti ti-user-check" style="color:var(--teal);font-size:22px;" aria-hidden="true"></i>
+      <p class="resource-label">Volunteers</p>
+      <p class="resource-count">${available} available</p>
+    </div>
+    <div class="resource-card" onclick="document.querySelector('[data-view=map]').click()">
+      <i class="ti ti-shield" style="color:var(--amber);font-size:22px;" aria-hidden="true"></i>
+      <p class="resource-label">Safe Zones</p>
+      <p class="resource-count">${activeZones} active nearby</p>
+    </div>
+    <div class="resource-card">
+      <i class="ti ti-phone-call" style="color:var(--rose);font-size:22px;" aria-hidden="true"></i>
+      <p class="resource-label">Helpline</p>
+      <p class="resource-count">1091 (Women)</p>
+    </div>
+    <div class="resource-card">
+      <i class="ti ti-building-hospital" style="color:var(--gray-600);font-size:22px;" aria-hidden="true"></i>
+      <p class="resource-label">Hospitals</p>
+      <p class="resource-count">1 nearby</p>
+    </div>`;
+}
+
+/* ───────────── Map view ───────────── */
+async function refreshMap() {
+  const volunteers = await Store.getAllVolunteers();
+  const zones = (await Store.getSafeZones()).filter(z => z.status === 'active');
+
+  const markers = [{ lat: myPos.lat, lng: myPos.lng, type: 'user', label: 'You' }];
+  volunteers.filter(v => v.user?.location).forEach(v => {
+    markers.push({ lat: v.user.location.lat, lng: v.user.location.lng, type: 'volunteer', label: v.user.name });
+  });
+  zones.forEach(z => markers.push({ lat: z.lat, lng: z.lng, type: 'zone', label: z.name }));
+
+  await window.bsafeMaps.renderMap(UI.qs('#map-container'), { center: myPos, markers, zoom: 13 });
+
+  UI.qs('#map-volunteers-list').innerHTML = volunteers.map(v => {
+    const dist = v.user?.location ? UI.distanceKm(myPos, v.user.location) : null;
+    return `
+      <div class="nearby-card">
+        <span class="nearby-dot" style="background:${v.availability === 'available' ? 'var(--teal)' : 'var(--gray-400)'};"></span>
+        <div class="nearby-info">
+          <p class="nearby-name">${UI.escapeHtml(v.user?.name || 'Volunteer')}</p>
+          <p class="nearby-dist">${UI.formatDistance(dist)} · ${v.availability === 'available' ? `ETA ~${UI.estimateEtaMinutes(dist)}` : 'Busy'}</p>
+        </div>
+        ${v.verification === 'verified' ? '<span class="badge badge-teal"><i class="ti ti-rosette-discount-check"></i> Verified</span>' : '<span class="badge badge-amber">Pending</span>'}
+      </div>`;
+  }).join('') || `<div class="empty-state"><i class="ti ti-user-off"></i><p>No volunteers found.</p></div>`;
+
+  UI.qs('#map-zones-list').innerHTML = zones.map(z => `
+    <div class="nearby-card">
+      <span class="nearby-dot" style="background:var(--amber);"></span>
+      <div class="nearby-info">
+        <p class="nearby-name">${UI.escapeHtml(z.name)}</p>
+        <p class="nearby-dist">${UI.escapeHtml(z.type)} · ${UI.escapeHtml(z.address)}</p>
+      </div>
+    </div>`).join('');
+}
+
+/* ───────────── History view ───────────── */
+async function refreshHistory() {
+  const history = await Store.getMyAlertHistory(user.id);
+  const resolved = history.filter(a => a.status === 'resolved');
+  const avgSec = resolved.length ? Math.round(resolved.reduce((s,a) => s + (a.responseTimeSeconds||0), 0) / resolved.length) : null;
+
+  UI.qs('#history-kpis').innerHTML = `
+    <div class="kpi-card"><p class="kpi-value">${history.length}</p><p class="kpi-label">Total Alerts</p></div>
+    <div class="kpi-card"><p class="kpi-value">${avgSec ? Math.round(avgSec/60)+'m' : '—'}</p><p class="kpi-label">Avg Response</p></div>
+    <div class="kpi-card"><p class="kpi-value">${resolved.length}</p><p class="kpi-label">Resolved</p></div>`;
+
+  const el = UI.qs('#history-list');
+  if (history.length === 0) {
+    el.innerHTML = `<div class="empty-state"><i class="ti ti-shield-check" aria-hidden="true"></i><p>No alerts yet. Stay safe!</p></div>`;
+    return;
+  }
+
+  el.innerHTML = history.map(a => `
+    <div class="history-item ${a.status !== 'resolved' && a.status !== 'cancelled' ? 'active-status' : ''}">
+      <div class="history-top">
+        <span class="badge ${a.status === 'resolved' ? 'badge-teal' : a.status === 'cancelled' ? 'badge-gray' : 'badge-rose'}">
+          ${a.status === 'resolved' ? '✓ Resolved' : a.status === 'cancelled' ? 'Cancelled' : '● ' + formatStatusLabel(a.status)}
+        </span>
+        <span style="font-size:11px;color:var(--gray-400);">${UI.timeAgo(a.createdAt)}</span>
+      </div>
+      <div class="history-row"><i class="ti ti-map-pin" aria-hidden="true"></i><span>${UI.escapeHtml(a.address)}</span></div>
+      <div class="history-row"><i class="ti ti-calendar" aria-hidden="true"></i><span>${UI.formatDateTime(a.createdAt)}</span></div>
+      ${a.responder ? `<div class="history-row"><i class="ti ti-user-check" aria-hidden="true"></i><span>Responded by ${UI.escapeHtml(a.responder.user?.name || 'Volunteer')}</span></div>` : ''}
+      ${a.responseTimeSeconds != null ? `<div class="history-row"><i class="ti ti-clock" aria-hidden="true"></i><span>Response time: ${UI.formatSeconds(a.responseTimeSeconds)}</span></div>` : ''}
+    </div>`).join('');
+}
+
+/* ───────────── Profile view ───────────── */
+function bindSettingsMenu() {
+  UI.qs('#toggle-notifs').addEventListener('click', (e) => e.currentTarget.classList.toggle('on'));
+  UI.qs('#toggle-location').addEventListener('click', (e) => e.currentTarget.classList.toggle('on'));
+  UI.qs('#signout-btn').addEventListener('click', () => {
+    Store.logout();
+    window.location.href = '../index.html';
+  });
+  UI.qs('#settings-btn').addEventListener('click', openMapSettingsModal);
+  UI.qs('#bell-btn').addEventListener('click', () => UI.showToast('info', 'No new notifications', ''));
+}
+
+let openPanelName = null;
+
+async function refreshProfile(openPanel) {
+  UI.qs('#profile-avatar').textContent = UI.initials(user.name);
+  UI.qs('#profile-name').textContent = user.name;
+  UI.qs('#profile-phone').textContent = user.phone;
+
+  const sp = user.safetyProfile || {};
+  const filled = ['bloodGroup','medicalNotes','address','defaultSafeZone'].filter(k => sp[k]).length;
+  const score = Math.round(60 + (filled / 4) * 40);
+  UI.qs('#safety-score-value').textContent = score;
+  UI.qs('#safety-score-sub').textContent = filled === 4 ? 'Excellent · Profile complete' : `${filled}/4 profile fields complete`;
+
+  const contacts = await Store.getContacts(user.id);
+
+  UI.qs('#profile-menu').innerHTML = `
+    <div id="menu-group">
+      <button class="menu-row" id="toggle-safety-panel">
+        <div class="menu-icon-wrap"><i class="ti ti-shield" aria-hidden="true"></i></div>
+        <div class="menu-text"><p class="menu-label">Safety Profile</p><p class="menu-sub">Medical info & address details</p></div>
+        <i class="ti ti-chevron-right" id="safety-chevron" aria-hidden="true"></i>
+      </button>
+      <div id="safety-panel" class="panel-content hidden"></div>
+
+      <button class="menu-row" id="toggle-contacts-panel">
+        <div class="menu-icon-wrap"><i class="ti ti-users" aria-hidden="true"></i></div>
+        <div class="menu-text"><p class="menu-label">Emergency Contacts</p><p class="menu-sub">${contacts.length} contacts added</p></div>
+        <i class="ti ti-chevron-right" id="contacts-chevron" aria-hidden="true"></i>
+      </button>
+      <div id="contacts-panel" class="panel-content hidden"></div>
+
+      <button class="menu-row"><div class="menu-icon-wrap"><i class="ti ti-help-circle" aria-hidden="true"></i></div><div class="menu-text"><p class="menu-label">Help & Support</p><p class="menu-sub">FAQs and contact us</p></div></button>
+    </div>`;
+
+  renderSafetyPanel(sp);
+  renderContactsPanel(contacts);
+
+  UI.qs('#toggle-safety-panel').addEventListener('click', () => togglePanel('safety'));
+  UI.qs('#toggle-contacts-panel').addEventListener('click', () => togglePanel('contacts'));
+
+  if (openPanel) togglePanel(openPanel);
+}
+
+function togglePanel(name) {
+  const panels = { safety: UI.qs('#safety-panel'), contacts: UI.qs('#contacts-panel') };
+  const chevrons = { safety: UI.qs('#safety-chevron'), contacts: UI.qs('#contacts-chevron') };
+  Object.keys(panels).forEach(k => {
+    if (k === name) {
+      const willOpen = panels[k].classList.contains('hidden');
+      panels[k].classList.toggle('hidden', !willOpen);
+      chevrons[k].className = `ti ti-chevron-${willOpen ? 'down' : 'right'}`;
+    } else {
+      panels[k].classList.add('hidden');
+      chevrons[k].className = 'ti ti-chevron-right';
+    }
+  });
+}
+
+function renderSafetyPanel(sp) {
+  UI.qs('#safety-panel').innerHTML = `
+    <div class="form-group"><label>Home / Frequent Address</label>
+      <div class="input-wrap"><i class="ti ti-home"></i><textarea id="sp-address" placeholder="Your address">${UI.escapeHtml(sp.address || '')}</textarea></div>
+    </div>
+    <div class="form-row">
+      <div class="form-group"><label>Blood Group</label>
+        <div class="input-wrap"><i class="ti ti-droplet"></i>
+          <select id="sp-blood"><option value="">Select</option>${['A+','A-','B+','B-','AB+','AB-','O+','O-'].map(b => `<option ${sp.bloodGroup===b?'selected':''}>${b}</option>`).join('')}</select>
+        </div>
+      </div>
+      <div class="form-group"><label>Default Safe Zone</label>
+        <div class="input-wrap"><i class="ti ti-shield-check"></i><input type="text" id="sp-zone" placeholder="e.g. Home" value="${UI.escapeHtml(sp.defaultSafeZone || '')}" /></div>
+      </div>
+    </div>
+    <div class="form-group"><label>Medical Notes</label>
+      <div class="input-wrap"><i class="ti ti-notes"></i><textarea id="sp-medical" placeholder="Allergies, conditions, etc.">${UI.escapeHtml(sp.medicalNotes || '')}</textarea></div>
+    </div>
+    <button class="btn btn-primary btn-block" id="save-safety-btn"><i class="ti ti-check"></i> Save Safety Profile</button>`;
+
+  UI.qs('#save-safety-btn').addEventListener('click', async () => {
+    const btn = UI.qs('#save-safety-btn');
+    UI.setLoading(btn, true, 'Saving...');
+    const profile = {
+      address: UI.qs('#sp-address').value.trim(),
+      bloodGroup: UI.qs('#sp-blood').value,
+      defaultSafeZone: UI.qs('#sp-zone').value.trim(),
+      medicalNotes: UI.qs('#sp-medical').value.trim(),
+    };
+    user = await Store.updateSafetyProfile(user.id, profile);
+    UI.showToast('success', 'Saved', 'Your safety profile has been updated.');
+    UI.setLoading(btn, false);
+    await refreshProfile('safety');
+  });
+}
+
+function renderContactsPanel(contacts) {
+  UI.qs('#contacts-panel').innerHTML = `
+    <div id="contact-list-edit" style="display:flex;flex-direction:column;gap:6px;">
+      ${contacts.map(c => `
+        <div style="display:flex;align-items:center;justify-content:space-between;padding:9px 12px;background:var(--gray-50);border-radius:var(--r-md);">
+          <div><p style="font-size:13px;font-weight:600;">${UI.escapeHtml(c.name)}</p><p style="font-size:11px;color:var(--gray-400);margin-top:2px;">${UI.escapeHtml(c.relation||'')} ${c.relation?'· ':''}${UI.escapeHtml(c.phone)}</p></div>
+          <button data-remove-contact="${c.id}" style="color:var(--rose);font-size:16px;"><i class="ti ti-trash" aria-hidden="true"></i></button>
+        </div>`).join('') || `<p style="font-size:12.5px;color:var(--gray-400);text-align:center;padding:8px;">No contacts yet.</p>`}
+    </div>
+    <form id="add-contact-form" class="contact-add-row">
+      <input type="text" id="nc-name" placeholder="Name" required />
+      <input type="text" id="nc-relation" placeholder="Relation" />
+      <input type="tel" id="nc-phone" placeholder="Phone" required />
+      <button type="submit" class="btn btn-teal" style="padding:9px 12px;flex-shrink:0;"><i class="ti ti-plus" aria-hidden="true"></i></button>
+    </form>`;
+
+  UI.qsa('[data-remove-contact]').forEach(btn => {
+    btn.addEventListener('click', async () => {
+      await Store.removeContact(user.id, btn.dataset.removeContact);
+      UI.showToast('info', 'Contact removed', '');
+      const updated = await Store.getContacts(user.id);
+      renderContactsPanel(updated);
+      renderContacts(updated);
+      UI.qs('.menu-sub').textContent = `${updated.length} contacts added`;
+    });
+  });
+
+  UI.qs('#add-contact-form').addEventListener('submit', async (e) => {
+    e.preventDefault();
+    const name = UI.qs('#nc-name').value.trim();
+    const relation = UI.qs('#nc-relation').value.trim();
+    const phone = UI.qs('#nc-phone').value.trim();
+    if (!name || !phone) return;
+    await Store.addContact(user.id, { name, relation, phone });
+    UI.showToast('success', 'Contact added', name);
+    const updated = await Store.getContacts(user.id);
+    renderContactsPanel(updated);
+    renderContacts(updated);
+  });
+}
+
+/* ───────────── Maps settings modal ───────────── */
+function openMapSettingsModal() {
+  const currentKey = window.bsafeMaps.getGMapsKey();
+  const html = `
+    <div class="modal-header"><span class="modal-title">Map Settings</span><div class="modal-close" data-close-modal><i class="ti ti-x"></i></div></div>
+    <div class="modal-body">
+      <p style="font-size:13px;color:var(--gray-600);line-height:1.6;">Add a Google Maps API key to enable live interactive maps. Without a key, a styled placeholder map is shown instead.</p>
+      <div class="form-group">
+        <label>Google Maps API Key</label>
+        <div class="input-wrap no-icon"><input type="text" id="gmaps-key-input" placeholder="AIza..." value="${UI.escapeHtml(currentKey)}" /></div>
+        <span class="field-hint">Get one at console.cloud.google.com (enable "Maps JavaScript API")</span>
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-secondary" data-close-modal>Cancel</button>
+      <button class="btn btn-primary" id="save-gmaps-key">Save</button>
+    </div>`;
+  const { close } = UI.openModal(html);
+  UI.qs('#save-gmaps-key').addEventListener('click', () => {
+    const key = UI.qs('#gmaps-key-input').value.trim();
+    window.bsafeMaps.setGMapsKey(key);
+    UI.showToast('success', 'Saved', key ? 'Google Maps will load on next map view.' : 'Using placeholder maps.');
+    close();
+  });
+}
+</script>
+</body>
+</html>

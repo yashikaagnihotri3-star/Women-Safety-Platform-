@@ -1,0 +1,112 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Volunteer Registration — bSafe</title>
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@latest/tabler-icons.min.css" />
+<link rel="stylesheet" href="../css/global.css" />
+<style>
+  body { min-height: 100vh; display: flex; align-items: center; justify-content: center; padding: 24px; }
+  .vol-card { background: var(--white); border-radius: var(--r-xl); padding: 32px 30px; width: 100%; max-width: 500px; box-shadow: var(--shadow-lg); display: flex; flex-direction: column; gap: 20px; }
+  .vol-title { font-family: var(--font-display); font-size: 23px; font-weight: 700; }
+  .vol-sub { font-size: 13px; color: var(--gray-600); margin-top: 4px; line-height: 1.6; }
+  .vol-note { display: flex; gap: 8px; background: var(--amber-light); border: 1px solid var(--amber); border-radius: var(--r-md); padding: 11px 13px; font-size: 12px; color: var(--amber-deep); line-height: 1.5; }
+  .vol-note i { font-size: 16px; margin-top: 1px; flex-shrink: 0; }
+
+  .vol-success { align-items: center; text-align: center; }
+  .vol-success-icon { width: 64px; height: 64px; border-radius: 50%; background: var(--amber-light); display: flex; align-items: center; justify-content: center; }
+  .vol-success-icon i { font-size: 32px; color: var(--amber); }
+  .vol-success-title { font-family: var(--font-display); font-size: 22px; font-weight: 700; }
+  .vol-success-text { font-size: 13px; color: var(--gray-600); line-height: 1.6; }
+</style>
+</head>
+<body>
+
+<div class="vol-card" id="vol-card">
+  <div>
+    <div class="vol-title">Volunteer Registration</div>
+    <div class="vol-sub">Join bSafe's trusted responder network — verification required before activation.</div>
+  </div>
+
+  <form id="vol-form" style="display:flex;flex-direction:column;gap:14px;">
+    <div class="form-group">
+      <label>Coverage Zone / Area</label>
+      <div class="input-wrap"><i class="ti ti-map-pin" aria-hidden="true"></i><input type="text" id="f-zone" required placeholder="e.g. Sector 18, Noida" /></div>
+    </div>
+    <div class="form-row">
+      <div class="form-group">
+        <label>ID Proof Type</label>
+        <div class="input-wrap"><i class="ti ti-id" aria-hidden="true"></i>
+          <select id="f-idtype">
+            <option>Aadhaar Card</option><option>Voter ID</option><option>Driving License</option><option>Passport</option>
+          </select>
+        </div>
+      </div>
+      <div class="form-group">
+        <label>ID Number</label>
+        <div class="input-wrap"><i class="ti ti-hash" aria-hidden="true"></i><input type="text" id="f-idnum" required placeholder="XXXX-XXXX-XXXX" /></div>
+      </div>
+    </div>
+    <div class="form-group">
+      <label>Relevant Experience (optional)</label>
+      <div class="input-wrap"><i class="ti ti-briefcase" aria-hidden="true"></i><textarea id="f-exp" placeholder="e.g. NGO volunteer, first-aid trained, community responder..."></textarea></div>
+    </div>
+
+    <div class="vol-note"><i class="ti ti-info-circle" aria-hidden="true"></i> Your ID will be verified by the bSafe admin team. You'll be notified once your account is activated.</div>
+
+    <button type="submit" class="btn btn-primary btn-block" id="vol-submit-btn">Submit for Verification <i class="ti ti-arrow-right" aria-hidden="true"></i></button>
+  </form>
+</div>
+
+<script src="../js/store.js"></script>
+<script src="../js/ui.js"></script>
+<script>
+const UI = window.bsafeUI;
+
+let user = null;
+
+(async function init() {
+  user = Store.requireAuth(['volunteer']);
+  if (!user) return;
+
+  const existing = await Store.getVolunteerByUserId(user.id);
+  if (existing) {
+    window.location.href = 'volunteer.html';
+  }
+})();
+
+document.getElementById('vol-form').addEventListener('submit', async (e) => {
+  e.preventDefault();
+  const btn = document.getElementById('vol-submit-btn');
+  UI.setLoading(btn, true, 'Submitting...');
+
+  try {
+    const zone = document.getElementById('f-zone').value.trim();
+    const idType = document.getElementById('f-idtype').value;
+    const idNumber = document.getElementById('f-idnum').value.trim();
+    const experience = document.getElementById('f-exp').value.trim();
+
+    await Store.registerVolunteer(user.id, { zone, idType, idNumber, experience });
+
+    document.getElementById('vol-card').innerHTML = `
+      <div class="vol-success">
+        <div class="vol-success-icon"><i class="ti ti-clock-hour-4" aria-hidden="true"></i></div>
+        <div class="vol-success-title">Application Submitted</div>
+        <div class="vol-success-text">
+          Thanks, ${user.name.split(' ')[0]}! Your registration is now <strong>pending verification</strong>.
+          Our admin team will review your details before activating your account. You can preview your
+          dashboard below — live alerts will only be sent once you're verified.
+        </div>
+        <span class="badge badge-amber"><i class="ti ti-rosette-discount-check" aria-hidden="true"></i> Verification: Pending</span>
+        <button class="btn btn-primary btn-block" id="goto-dash-btn">Go to Volunteer Dashboard <i class="ti ti-arrow-right" aria-hidden="true"></i></button>
+      </div>`;
+    document.getElementById('goto-dash-btn').addEventListener('click', () => window.location.href = 'volunteer.html');
+  } catch (err) {
+    UI.showToast('error', 'Submission failed', err.message);
+    UI.setLoading(btn, false);
+  }
+});
+</script>
+</body>
+</html>

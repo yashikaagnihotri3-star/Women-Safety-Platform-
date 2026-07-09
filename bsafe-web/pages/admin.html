@@ -1,0 +1,406 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>bSafe — Admin Dashboard</title>
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@latest/tabler-icons.min.css" />
+<link rel="stylesheet" href="../css/global.css" />
+<style>
+  body { background: var(--gray-100); }
+  .admin-layout { display: flex; min-height: 100vh; }
+
+  .admin-sidebar { width: 220px; flex-shrink: 0; background: var(--rose-deep); display: flex; flex-direction: column; }
+  .admin-brand { padding: 22px 18px 18px; border-bottom: 1px solid rgba(255,255,255,0.1); }
+  .admin-logo { font-family: var(--font-display); font-size: 22px; font-weight: 700; color: #fff; }
+  .admin-role { font-size: 11px; color: rgba(255,255,255,0.5); margin-top: 2px; }
+  .admin-nav { flex: 1; padding: 12px 8px; display: flex; flex-direction: column; gap: 2px; }
+  .admin-nav-item { display: flex; align-items: center; gap: 10px; padding: 10px; border-radius: var(--r-sm); color: rgba(255,255,255,0.6); font-size: 13px; transition: background 0.15s, color 0.15s; text-align: left; }
+  .admin-nav-item i { font-size: 18px; }
+  .admin-nav-item:hover { background: rgba(255,255,255,0.08); color: rgba(255,255,255,0.9); }
+  .admin-nav-item.active { background: rgba(255,255,255,0.16); color: #fff; font-weight: 600; }
+  .admin-nav-badge { margin-left: auto; background: var(--rose); color: #fff; font-size: 10px; font-weight: 700; padding: 1px 7px; border-radius: 10px; }
+  .admin-sidebar-footer { padding: 14px 18px; border-top: 1px solid rgba(255,255,255,0.1); display: flex; align-items: center; gap: 8px; font-size: 13px; color: rgba(255,255,255,0.5); }
+  .admin-sidebar-footer:hover { color: #fff; }
+
+  .admin-main { flex: 1; overflow-y: auto; padding: 26px 28px; display: flex; flex-direction: column; gap: 20px; max-width: 1100px; }
+  .admin-topbar { display: flex; align-items: flex-start; justify-content: space-between; flex-wrap: wrap; gap: 12px; }
+  .admin-page-title { font-size: 21px; font-weight: 700; }
+  .admin-page-sub { font-size: 12.5px; color: var(--gray-400); margin-top: 3px; }
+  .live-badge { display: flex; align-items: center; gap: 6px; background: var(--rose-light); color: var(--rose-deep); font-size: 12px; font-weight: 600; padding: 5px 12px; border-radius: var(--r-full); border: 1px solid var(--rose); }
+
+  .kpi-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 12px; }
+  .kpi-tile { background: var(--white); border: 1px solid var(--gray-200); border-radius: var(--r-md); padding: 16px; display: flex; align-items: center; gap: 14px; box-shadow: var(--shadow-sm); }
+  .kpi-tile-icon { font-size: 26px; line-height: 1; }
+  .kpi-tile-value { font-size: 22px; font-weight: 700; line-height: 1; }
+  .kpi-tile-label { font-size: 11px; color: var(--gray-400); margin-top: 4px; }
+
+  .admin-card { background: var(--white); border: 1px solid var(--gray-200); border-radius: var(--r-lg); overflow: hidden; box-shadow: var(--shadow-sm); }
+  .admin-card-header { display: flex; align-items: center; justify-content: space-between; padding: 14px 18px; border-bottom: 1px solid var(--gray-100); flex-wrap: wrap; gap: 8px; }
+  .admin-card-title { font-size: 14px; font-weight: 700; }
+  .admin-card-count { font-size: 12px; color: var(--gray-400); }
+
+  .zone-form { display: flex; flex-direction: column; gap: 10px; padding: 16px 18px; }
+  .zone-form-row { display: flex; gap: 10px; flex-wrap: wrap; }
+  .zone-input { flex: 1; min-width: 140px; padding: 9px 12px; border: 1.5px solid var(--gray-200); border-radius: var(--r-md); font-size: 13px; outline: none; }
+  .zone-input:focus { border-color: var(--rose); }
+
+  .report-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 12px; padding: 18px; }
+  .report-stat { background: var(--gray-50); border-radius: var(--r-md); padding: 14px; text-align: center; }
+  .report-stat-value { font-family: var(--font-display); font-size: 24px; font-weight: 700; color: var(--rose); }
+  .report-stat-label { font-size: 11px; color: var(--gray-400); margin-top: 4px; }
+
+  .status-pill { display: inline-block; font-size: 11px; font-weight: 600; padding: 3px 10px; border-radius: var(--r-full); }
+  .status-pill.active   { background: var(--rose-light); color: var(--rose-deep); }
+  .status-pill.responding { background: var(--amber-light); color: var(--amber-deep); }
+  .status-pill.resolved { background: var(--teal-light); color: var(--teal-deep); }
+  .status-pill.pending  { background: var(--gray-100); color: var(--gray-600); border: 1px solid var(--gray-200); }
+
+  .row-action-btn { font-size: 11px; font-weight: 600; border-radius: var(--r-full); padding: 4px 12px; }
+  .verify-btn { color: var(--teal-deep); background: var(--teal-light); border: 1px solid var(--teal); }
+  .suspend-btn { color: var(--rose-deep); background: var(--rose-light); border: 1px solid var(--rose); }
+
+  @media (max-width: 860px) {
+    .admin-sidebar { display: none; }
+    .kpi-grid, .report-grid { grid-template-columns: repeat(2, 1fr); }
+  }
+</style>
+</head>
+<body>
+
+<div class="admin-layout">
+  <aside class="admin-sidebar">
+    <div class="admin-brand">
+      <div class="admin-logo">bSafe</div>
+      <div class="admin-role">Admin Panel</div>
+    </div>
+    <nav class="admin-nav" id="admin-nav">
+      <button class="admin-nav-item" data-tab="alerts"><i class="ti ti-bell" aria-hidden="true"></i><span>Alerts</span></button>
+      <button class="admin-nav-item" data-tab="volunteers"><i class="ti ti-user-check" aria-hidden="true"></i><span>Volunteers</span><span class="admin-nav-badge hidden" id="vol-pending-badge"></span></button>
+      <button class="admin-nav-item" data-tab="users"><i class="ti ti-users" aria-hidden="true"></i><span>Users</span></button>
+      <button class="admin-nav-item" data-tab="zones"><i class="ti ti-map-pin" aria-hidden="true"></i><span>Safe Zones</span></button>
+      <button class="admin-nav-item" data-tab="reports"><i class="ti ti-chart-bar" aria-hidden="true"></i><span>Reports</span></button>
+    </nav>
+    <button class="admin-sidebar-footer" id="admin-logout-btn"><i class="ti ti-logout" aria-hidden="true"></i><span>Sign Out</span></button>
+  </aside>
+
+  <main class="admin-main" id="admin-main">
+    <div class="admin-topbar">
+      <div>
+        <h1 class="admin-page-title" id="admin-title">Emergency Alerts</h1>
+        <p class="admin-page-sub" id="admin-subtitle">Monitor live emergency alerts (for coordination only)</p>
+      </div>
+      <div class="live-badge"><span class="pulse-dot red"></span> Live</div>
+    </div>
+
+    <div class="kpi-grid" id="admin-kpis"></div>
+
+    <div id="admin-content"></div>
+  </main>
+</div>
+
+<script src="../js/store.js"></script>
+<script src="../js/ui.js"></script>
+<script>
+const UI = window.bsafeUI;
+
+let admin = null;
+let currentTab = 'alerts';
+
+const TAB_META = {
+  alerts: { title: 'Emergency Alerts', sub: 'Monitor live emergency alerts (for coordination only)' },
+  volunteers: { title: 'Volunteer Management', sub: 'Verify and manage volunteers & support teams' },
+  users: { title: 'User Management', sub: 'Manage registered users and their accounts' },
+  zones: { title: 'Safe Zones & Resources', sub: 'Manage safety zones and emergency resources' },
+  reports: { title: 'Incident & Performance Reports', sub: 'Generate incident and performance reports' },
+};
+
+(async function init() {
+  admin = Store.requireAuth(['admin']);
+  if (!admin) return;
+
+  UI.qs('#admin-logout-btn').addEventListener('click', () => { Store.logout(); window.location.href = '../index.html'; });
+  UI.qsa('.admin-nav-item').forEach(btn => btn.addEventListener('click', () => switchTab(btn.dataset.tab)));
+
+  await switchTab('alerts');
+  setInterval(refreshKPIs, 4000);
+})();
+
+async function switchTab(tab) {
+  currentTab = tab;
+  UI.qsa('.admin-nav-item').forEach(b => b.classList.toggle('active', b.dataset.tab === tab));
+  UI.qs('#admin-title').textContent = TAB_META[tab].title;
+  UI.qs('#admin-subtitle').textContent = TAB_META[tab].sub;
+  await refreshKPIs();
+  await renderTab(tab);
+}
+
+async function refreshKPIs() {
+  const [users, volunteers, alerts] = await Promise.all([
+    Store.getAllUsers('woman'), Store.getAllVolunteers(), Store.getAllAlerts(),
+  ]);
+  const activeAlerts = alerts.filter(a => ['active','accepted','en_route','arrived','assisting'].includes(a.status)).length;
+  const pendingVol = volunteers.filter(v => v.verification === 'pending').length;
+
+  UI.qs('#admin-kpis').innerHTML = `
+    <div class="kpi-tile"><i class="ti ti-users kpi-tile-icon" style="color:var(--blue);" aria-hidden="true"></i><div><p class="kpi-tile-value">${users.length}</p><p class="kpi-tile-label">Total Users</p></div></div>
+    <div class="kpi-tile"><i class="ti ti-alert-triangle kpi-tile-icon" style="color:var(--rose);" aria-hidden="true"></i><div><p class="kpi-tile-value">${activeAlerts}</p><p class="kpi-tile-label">Active Alerts</p></div></div>
+    <div class="kpi-tile"><i class="ti ti-user-check kpi-tile-icon" style="color:var(--teal);" aria-hidden="true"></i><div><p class="kpi-tile-value">${volunteers.length}</p><p class="kpi-tile-label">Volunteers</p></div></div>
+    <div class="kpi-tile"><i class="ti ti-clock kpi-tile-icon" style="color:var(--amber);" aria-hidden="true"></i><div><p class="kpi-tile-value" id="kpi-avg-resp">…</p><p class="kpi-tile-label">Avg Response</p></div></div>`;
+
+  Store.getReportSummary().then(s => {
+    UI.qs('#kpi-avg-resp').textContent = s.avgResponseSeconds ? Math.round(s.avgResponseSeconds/60)+' min' : '—';
+  });
+
+  const badge = UI.qs('#vol-pending-badge');
+  if (pendingVol > 0) { badge.textContent = pendingVol; badge.classList.remove('hidden'); }
+  else badge.classList.add('hidden');
+}
+
+async function renderTab(tab) {
+  const el = UI.qs('#admin-content');
+  if (tab === 'alerts') return renderAlertsTab(el);
+  if (tab === 'volunteers') return renderVolunteersTab(el);
+  if (tab === 'users') return renderUsersTab(el);
+  if (tab === 'zones') return renderZonesTab(el);
+  if (tab === 'reports') return renderReportsTab(el);
+}
+
+/* ===== Alerts ===== */
+async function renderAlertsTab(el) {
+  const alerts = await Store.getAllAlerts();
+  el.innerHTML = `
+    <div class="admin-card" id="tab-alerts">
+      <div class="admin-card-header"><span class="admin-card-title">Recent Alerts</span><span class="admin-card-count">${alerts.length} total</span></div>
+      <div class="table-wrap"><table>
+        <thead><tr><th>User</th><th>Location</th><th>Time</th><th>Responder</th><th>Status</th></tr></thead>
+        <tbody>
+          ${alerts.length === 0 ? `<tr><td colspan="5" style="text-align:center;color:var(--gray-400);padding:30px;">No alerts yet</td></tr>` : alerts.map(a => `
+            <tr>
+              <td class="td-bold">${UI.escapeHtml(a.raisedByUser?.name || '—')}</td>
+              <td class="td-muted">${UI.escapeHtml(a.address)}</td>
+              <td class="td-muted">${UI.timeAgo(a.createdAt)}</td>
+              <td>${UI.escapeHtml(a.responder?.user?.name || '—')}</td>
+              <td><span class="status-pill ${a.status === 'resolved' ? 'resolved' : a.status === 'active' ? 'active' : 'responding'}">${a.status === 'resolved' ? '✓ Resolved' : a.status === 'active' ? '● Active' : '↗ ' + a.status}</span></td>
+            </tr>`).join('')}
+        </tbody>
+      </table></div>
+    </div>`;
+}
+
+/* ===== Volunteers ===== */
+async function renderVolunteersTab(el) {
+  const volunteers = await Store.getAllVolunteers();
+  const pending = volunteers.filter(v => v.verification === 'pending').length;
+  el.innerHTML = `
+    <div class="admin-card" id="tab-volunteers">
+      <div class="admin-card-header"><span class="admin-card-title">Volunteer Registry</span><span class="admin-card-count">${pending} pending verification</span></div>
+      <div class="table-wrap"><table>
+        <thead><tr><th>Name</th><th>Zone</th><th>Alerts Handled</th><th>Availability</th><th>Verification</th><th>Action</th></tr></thead>
+        <tbody>
+          ${volunteers.length === 0 ? `<tr><td colspan="6" style="text-align:center;color:var(--gray-400);padding:30px;">No volunteers yet</td></tr>` : volunteers.map(v => `
+            <tr>
+              <td class="td-bold">${UI.escapeHtml(v.user?.name || '—')} ${v.verification === 'verified' ? '<i class="ti ti-rosette-discount-check" style="color:var(--teal);font-size:14px;margin-left:4px;"></i>' : ''}</td>
+              <td class="td-muted">${UI.escapeHtml(v.zone)}</td>
+              <td>${v.alertsHandled}</td>
+              <td><span class="status-pill ${v.availability === 'available' ? 'resolved' : 'pending'}">${v.availability === 'available' ? '● Available' : v.availability === 'busy' ? '○ Busy' : '○ Offline'}</span></td>
+              <td><span class="status-pill ${v.verification === 'verified' ? 'resolved' : 'pending'}">${v.verification === 'verified' ? '✓ Verified' : '○ Pending'}</span></td>
+              <td>
+                <div style="display:flex;gap:6px;">
+                  ${v.verification !== 'verified' ? `<button class="row-action-btn verify-btn" data-verify="${v.id}">Verify</button>` : ''}
+                  <button class="row-action-btn suspend-btn" data-view-vol="${v.id}">Details</button>
+                </div>
+              </td>
+            </tr>`).join('')}
+        </tbody>
+      </table></div>
+    </div>`;
+
+  UI.qsa('[data-verify]').forEach(btn => btn.addEventListener('click', async () => {
+    UI.setLoading(btn, true, '...');
+    await Store.verifyVolunteer(btn.dataset.verify);
+    UI.showToast('success', 'Volunteer verified', 'They can now receive live alerts.');
+    await renderVolunteersTab(el);
+    await refreshKPIs();
+  }));
+
+  UI.qsa('[data-view-vol]').forEach(btn => btn.addEventListener('click', () => {
+    const v = volunteers.find(x => x.id === btn.dataset.viewVol);
+    window.bsafeUI.openModal(`
+      <div class="modal-header"><span class="modal-title">Volunteer Details</span><div class="modal-close" data-close-modal><i class="ti ti-x"></i></div></div>
+      <div class="modal-body">
+        <div style="display:flex;justify-content:space-between;border-bottom:1px solid var(--gray-100);padding-bottom:8px;font-size:12.5px;"><span style="color:var(--gray-400);">Name</span><strong>${UI.escapeHtml(v.user?.name||'')}</strong></div>
+        <div style="display:flex;justify-content:space-between;border-bottom:1px solid var(--gray-100);padding-bottom:8px;font-size:12.5px;"><span style="color:var(--gray-400);">Phone</span><strong>${UI.escapeHtml(v.user?.phone||'')}</strong></div>
+        <div style="display:flex;justify-content:space-between;border-bottom:1px solid var(--gray-100);padding-bottom:8px;font-size:12.5px;"><span style="color:var(--gray-400);">Zone</span><strong>${UI.escapeHtml(v.zone)}</strong></div>
+        <div style="display:flex;justify-content:space-between;border-bottom:1px solid var(--gray-100);padding-bottom:8px;font-size:12.5px;"><span style="color:var(--gray-400);">ID Type</span><strong>${UI.escapeHtml(v.idType)}</strong></div>
+        <div style="display:flex;justify-content:space-between;border-bottom:1px solid var(--gray-100);padding-bottom:8px;font-size:12.5px;"><span style="color:var(--gray-400);">ID Number</span><strong>${UI.escapeHtml(v.idNumber)}</strong></div>
+        <div style="display:flex;justify-content:space-between;font-size:12.5px;"><span style="color:var(--gray-400);">Experience</span><strong style="text-align:right;max-width:60%;">${UI.escapeHtml(v.experience||'—')}</strong></div>
+      </div>`);
+  }));
+}
+
+/* ===== Users ===== */
+async function renderUsersTab(el) {
+  const users = await Store.getAllUsers('woman');
+  const alerts = await Store.getAllAlerts();
+  el.innerHTML = `
+    <div class="admin-card" id="tab-users">
+      <div class="admin-card-header"><span class="admin-card-title">Registered Users</span><span class="admin-card-count">${users.filter(u=>u.status==='active').length} active of ${users.length}</span></div>
+      <div class="table-wrap"><table>
+        <thead><tr><th>Name</th><th>Phone</th><th>Joined</th><th>Alerts Raised</th><th>Status</th><th>Action</th></tr></thead>
+        <tbody>
+          ${users.map(u => {
+            const count = alerts.filter(a => a.raisedBy === u.id).length;
+            return `
+            <tr>
+              <td class="td-bold">${UI.escapeHtml(u.name)}</td>
+              <td class="td-muted">${UI.escapeHtml(u.phone)}</td>
+              <td class="td-muted">${new Date(u.createdAt).toLocaleDateString('en-IN', {day:'numeric',month:'short',year:'numeric'})}</td>
+              <td>${count}</td>
+              <td><span class="status-pill ${u.status === 'active' ? 'resolved' : 'active'}">${u.status === 'active' ? '● Active' : '⏸ Suspended'}</span></td>
+              <td><button class="row-action-btn ${u.status === 'active' ? 'suspend-btn' : 'verify-btn'}" data-toggle-status="${u.id}" data-current="${u.status}">${u.status === 'active' ? 'Suspend' : 'Reactivate'}</button></td>
+            </tr>`;
+          }).join('')}
+        </tbody>
+      </table></div>
+    </div>`;
+
+  UI.qsa('[data-toggle-status]').forEach(btn => btn.addEventListener('click', async () => {
+    const next = btn.dataset.current === 'active' ? 'suspended' : 'active';
+    UI.setLoading(btn, true, '...');
+    await Store.setUserStatus(btn.dataset.toggleStatus, next);
+    UI.showToast('info', `User ${next === 'suspended' ? 'suspended' : 'reactivated'}`, '');
+    await renderUsersTab(el);
+  }));
+}
+
+/* ===== Safe Zones ===== */
+async function renderZonesTab(el) {
+  const zones = await Store.getSafeZones();
+  el.innerHTML = `
+    <div class="admin-card">
+      <div class="admin-card-header"><span class="admin-card-title">Add Safety Zone / Resource</span></div>
+      <form class="zone-form" id="zone-form">
+        <div class="zone-form-row">
+          <input class="zone-input" type="text" id="zf-name" placeholder="Resource name" required />
+          <select class="zone-input" id="zf-type">
+            <option>Police</option><option>Hospital</option><option>Helpline</option><option>Safe Space</option><option>Fire Station</option>
+          </select>
+        </div>
+        <div class="zone-form-row">
+          <input class="zone-input" type="text" id="zf-address" placeholder="Address / location" required style="flex:1;" />
+          <button class="btn btn-primary" type="submit" style="flex-shrink:0;"><i class="ti ti-plus" aria-hidden="true"></i> Add Zone</button>
+        </div>
+      </form>
+    </div>
+
+    <div class="admin-card" id="tab-zones" style="margin-top:20px;">
+      <div class="admin-card-header"><span class="admin-card-title">All Safety Zones</span><span class="admin-card-count">${zones.length} total</span></div>
+      <div class="table-wrap"><table>
+        <thead><tr><th>Name</th><th>Type</th><th>Address</th><th>Status</th><th>Action</th></tr></thead>
+        <tbody>
+          ${zones.map(z => `
+            <tr>
+              <td class="td-bold">${UI.escapeHtml(z.name)}</td>
+              <td class="td-muted">${UI.escapeHtml(z.type)}</td>
+              <td class="td-muted">${UI.escapeHtml(z.address)}</td>
+              <td><span class="status-pill ${z.status === 'active' ? 'resolved' : 'pending'}">${z.status === 'active' ? '● Active' : '○ Inactive'}</span></td>
+              <td><button class="row-action-btn suspend-btn" data-toggle-zone="${z.id}">${z.status === 'active' ? 'Deactivate' : 'Activate'}</button></td>
+            </tr>`).join('')}
+        </tbody>
+      </table></div>
+    </div>`;
+
+  UI.qs('#zone-form').addEventListener('submit', async (e) => {
+    e.preventDefault();
+    const btn = e.target.querySelector('button[type=submit]');
+    UI.setLoading(btn, true, 'Adding...');
+    const name = UI.qs('#zf-name').value.trim();
+    const type = UI.qs('#zf-type').value;
+    const address = UI.qs('#zf-address').value.trim();
+    await Store.addSafeZone({ name, type, address, lat: 28.57 + (Math.random()-0.5)*0.05, lng: 77.32 + (Math.random()-0.5)*0.05 });
+    UI.showToast('success', 'Safety zone added', name);
+    await renderZonesTab(el);
+  });
+
+  UI.qsa('[data-toggle-zone]').forEach(btn => btn.addEventListener('click', async () => {
+    await Store.toggleSafeZone(btn.dataset.toggleZone);
+    await renderZonesTab(el);
+  }));
+}
+
+/* ===== Reports ===== */
+async function renderReportsTab(el) {
+  const summary = await Store.getReportSummary();
+  const alerts = await Store.getAllAlerts();
+  const volunteers = await Store.getAllVolunteers();
+
+  el.innerHTML = `
+    <div class="admin-card">
+      <div class="admin-card-header">
+        <span class="admin-card-title">Generate Report</span>
+        <div style="display:flex;gap:8px;">
+          <select class="zone-input" id="report-range">
+            <option value="7d">Last 7 days</option><option value="30d">Last 30 days</option><option value="90d">Last quarter</option>
+          </select>
+          <button class="btn btn-secondary" id="export-report-btn"><i class="ti ti-download" aria-hidden="true"></i> Export Summary</button>
+        </div>
+      </div>
+      <div class="report-grid">
+        <div class="report-stat"><p class="report-stat-value">${summary.totalIncidents}</p><p class="report-stat-label">Total Incidents</p></div>
+        <div class="report-stat"><p class="report-stat-value">${summary.avgResponseSeconds ? Math.round(summary.avgResponseSeconds/60)+' min' : '—'}</p><p class="report-stat-label">Avg Response Time</p></div>
+        <div class="report-stat"><p class="report-stat-value">${summary.resolutionRate}%</p><p class="report-stat-label">Resolution Rate</p></div>
+        <div class="report-stat"><p class="report-stat-value">${summary.verifiedVolunteers}</p><p class="report-stat-label">Active Volunteers</p></div>
+      </div>
+    </div>
+
+    <div class="admin-card" id="tab-reports" style="margin-top:20px;">
+      <div class="admin-card-header"><span class="admin-card-title">Incident Reports</span></div>
+      <div class="table-wrap"><table>
+        <thead><tr><th>Incident ID</th><th>Raised By</th><th>Location</th><th>Responder</th><th>Response Time</th><th>Status</th></tr></thead>
+        <tbody>
+          ${alerts.length === 0 ? `<tr><td colspan="6" style="text-align:center;color:var(--gray-400);padding:30px;">No incidents recorded</td></tr>` : alerts.map(a => `
+            <tr>
+              <td class="td-bold">#${a.id.toUpperCase().slice(0,10)}</td>
+              <td>${UI.escapeHtml(a.raisedByUser?.name || '—')}</td>
+              <td class="td-muted">${UI.escapeHtml(a.address)}</td>
+              <td class="td-muted">${UI.escapeHtml(a.responder?.user?.name || '—')}</td>
+              <td>${UI.formatSeconds(a.responseTimeSeconds)}</td>
+              <td><span class="status-pill ${a.status === 'resolved' ? 'resolved' : 'active'}">${a.status === 'resolved' ? '✓ Resolved' : '● ' + a.status}</span></td>
+            </tr>`).join('')}
+        </tbody>
+      </table></div>
+    </div>
+
+    <div class="admin-card" style="margin-top:20px;">
+      <div class="admin-card-header"><span class="admin-card-title">Volunteer Performance</span></div>
+      <div class="table-wrap"><table>
+        <thead><tr><th>Volunteer</th><th>Zone</th><th>Alerts Handled</th><th>Verification</th></tr></thead>
+        <tbody>
+          ${volunteers.map(v => `
+            <tr>
+              <td class="td-bold">${UI.escapeHtml(v.user?.name || '—')}</td>
+              <td class="td-muted">${UI.escapeHtml(v.zone)}</td>
+              <td>${v.alertsHandled}</td>
+              <td><span class="status-pill ${v.verification === 'verified' ? 'resolved' : 'pending'}">${v.verification === 'verified' ? '✓ Verified' : '○ Pending'}</span></td>
+            </tr>`).join('')}
+        </tbody>
+      </table></div>
+    </div>`;
+
+  UI.qs('#export-report-btn').addEventListener('click', () => {
+    const rows = [['Incident ID','Raised By','Location','Responder','Response Time (s)','Status'],
+      ...alerts.map(a => [a.id, a.raisedByUser?.name||'', a.address, a.responder?.user?.name||'', a.responseTimeSeconds||'', a.status])];
+    const csv = rows.map(r => r.map(c => `"${String(c).replace(/"/g,'""')}"`).join(',')).join('\n');
+    const blob = new Blob([csv], { type: 'text/csv' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url; a.download = 'bsafe-incident-report.csv';
+    a.click();
+    URL.revokeObjectURL(url);
+    UI.showToast('success', 'Report exported', 'CSV file downloaded.');
+  });
+}
+</script>
+</body>
+</html>

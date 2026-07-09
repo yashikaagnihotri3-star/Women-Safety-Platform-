@@ -1,0 +1,363 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>bSafe — Women Safety & Emergency Assistance Platform</title>
+<meta name="description" content="Instantly request emergency help, share live location, and connect with verified volunteers and support teams." />
+<link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>🛡️</text></svg>" />
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@latest/tabler-icons.min.css" />
+<link rel="stylesheet" href="css/global.css" />
+<style>
+  .landing-nav {
+    position: sticky; top: 0; z-index: 50;
+    background: rgba(249,248,246,0.85); backdrop-filter: blur(10px);
+    border-bottom: 1px solid var(--gray-100);
+  }
+  .landing-nav-inner { display: flex; align-items: center; justify-content: space-between; padding: 16px 24px; }
+  .brand { display: flex; align-items: center; gap: 8px; font-family: var(--font-display); font-size: 22px; font-weight: 700; color: var(--rose); }
+  .brand i { font-size: 24px; }
+  .nav-actions { display: flex; gap: 10px; }
+
+  .hero {
+    display: grid; grid-template-columns: 1.05fr 0.95fr; gap: 50px;
+    align-items: center; padding: 70px 24px 90px; max-width: 1180px; margin: 0 auto;
+  }
+  .hero-eyebrow { display:inline-flex; align-items:center; gap:6px; background: var(--rose-light); color: var(--rose-deep); padding: 6px 14px; border-radius: var(--r-full); font-size: 12.5px; font-weight: 600; margin-bottom: 18px; }
+  .hero h1 { font-family: var(--font-display); font-size: 46px; line-height: 1.12; margin-bottom: 18px; color: var(--gray-900); }
+  .hero h1 em { color: var(--rose); font-style: italic; }
+  .hero p { font-size: 16.5px; color: var(--gray-600); max-width: 480px; margin-bottom: 28px; }
+  .hero-actions { display: flex; gap: 12px; flex-wrap: wrap; }
+  .hero-stats { display: flex; gap: 32px; margin-top: 40px; }
+  .hero-stat-num { font-family: var(--font-display); font-size: 28px; font-weight: 700; color: var(--gray-900); }
+  .hero-stat-label { font-size: 12px; color: var(--gray-400); }
+
+  .hero-visual {
+    position: relative; display: flex; justify-content: center; align-items: center;
+  }
+  .phone-mock {
+    width: 280px; background: var(--white); border-radius: 32px; border: 8px solid var(--gray-900);
+    box-shadow: var(--shadow-xl); overflow: hidden; position: relative;
+  }
+  .phone-mock-header { background: var(--rose); padding: 18px 20px 14px; color: #fff; }
+  .phone-mock-logo { font-family: var(--font-display); font-size: 20px; font-weight: 700; }
+  .phone-mock-tag { font-size: 10.5px; opacity: 0.8; margin-top: 2px; }
+  .phone-mock-body { padding: 24px 20px; display: flex; flex-direction: column; align-items: center; gap: 14px; }
+  .sos-demo-ring { width: 130px; height: 130px; border-radius: 50%; background: var(--rose); display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 2px; box-shadow: 0 0 0 8px var(--rose-light); animation: sosFloat 2.4s ease-in-out infinite; }
+  @keyframes sosFloat { 0%,100% { box-shadow: 0 0 0 8px var(--rose-light); } 50% { box-shadow: 0 0 0 14px var(--rose-light); } }
+  .sos-demo-ring span:first-child { font-family: var(--font-display); font-size: 26px; font-weight: 700; color: #fff; }
+  .sos-demo-ring span:last-child { font-size: 8.5px; color: rgba(255,255,255,0.8); letter-spacing: 0.06em; }
+  .phone-mock-hint { font-size: 11.5px; color: var(--gray-400); text-align: center; }
+  .float-badge { position: absolute; background: var(--white); border: 1px solid var(--gray-200); border-radius: var(--r-md); padding: 9px 13px; box-shadow: var(--shadow-md); display: flex; align-items: center; gap: 8px; font-size: 12px; font-weight: 600; }
+  .float-badge i { font-size: 16px; }
+  .float-badge.b1 { top: 12%; left: -8%; color: var(--teal-deep); }
+  .float-badge.b1 i { color: var(--teal); }
+  .float-badge.b2 { bottom: 18%; right: -10%; color: var(--blue-deep); }
+  .float-badge.b2 i { color: var(--blue); }
+
+  .section { padding: 70px 24px; max-width: 1180px; margin: 0 auto; }
+  .section-head { text-align: center; max-width: 600px; margin: 0 auto 44px; }
+  .section-head .eyebrow { font-size: 12.5px; font-weight: 600; color: var(--rose); letter-spacing: 0.06em; text-transform: uppercase; margin-bottom: 8px; }
+  .section-head h2 { font-family: var(--font-display); font-size: 32px; margin-bottom: 10px; }
+  .section-head p { color: var(--gray-600); font-size: 15px; }
+
+  .feature-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 20px; }
+  .feature-card { padding: 26px; }
+  .feature-icon { width: 46px; height: 46px; border-radius: var(--r-md); display: flex; align-items: center; justify-content: center; margin-bottom: 14px; font-size: 22px; }
+  .feature-card h3 { font-size: 16px; margin-bottom: 6px; }
+  .feature-card p { font-size: 13.5px; color: var(--gray-600); }
+
+  .roles-section { background: var(--white); border-top: 1px solid var(--gray-100); border-bottom: 1px solid var(--gray-100); }
+  .roles-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 20px; }
+  .role-card { padding: 28px 24px; text-align: center; transition: transform 0.18s, box-shadow 0.18s; }
+  .role-card:hover { transform: translateY(-3px); box-shadow: var(--shadow-md); }
+  .role-icon { width: 56px; height: 56px; border-radius: 50%; display: flex; align-items: center; justify-content: center; margin: 0 auto 14px; font-size: 26px; }
+  .role-card h3 { font-size: 16.5px; margin-bottom: 6px; }
+  .role-card p { font-size: 13px; color: var(--gray-600); margin-bottom: 18px; min-height: 40px; }
+
+  footer { padding: 30px 24px; text-align: center; color: var(--gray-400); font-size: 12.5px; border-top: 1px solid var(--gray-100); }
+
+  @media (max-width: 900px) {
+    .hero { grid-template-columns: 1fr; padding-top: 36px; }
+    .hero-visual { order: -1; margin-bottom: 10px; }
+    .feature-grid, .roles-grid { grid-template-columns: 1fr; }
+    .hero h1 { font-size: 34px; }
+    .float-badge { display: none; }
+  }
+</style>
+</head>
+<body>
+
+<nav class="landing-nav">
+  <div class="landing-nav-inner">
+    <div class="brand"><i class="ti ti-shield-heart" aria-hidden="true"></i> bSafe</div>
+    <div class="nav-actions">
+      <button class="btn btn-ghost btn-sm" id="nav-login-btn">Sign In</button>
+      <button class="btn btn-primary btn-sm" id="nav-signup-btn">Get Started</button>
+    </div>
+  </div>
+</nav>
+
+<section class="hero">
+  <div>
+    <span class="hero-eyebrow"><i class="ti ti-bolt" aria-hidden="true"></i> Emergency help in seconds</span>
+    <h1>Your safety, <em>always</em><br/>within reach.</h1>
+    <p>bSafe connects women in distress with verified volunteers, support teams, and emergency responders — instantly, with live location sharing and coordinated response.</p>
+    <div class="hero-actions">
+      <button class="btn btn-primary btn-lg" id="hero-signup-btn"><i class="ti ti-shield-check" aria-hidden="true"></i> Create Free Account</button>
+      <button class="btn btn-secondary btn-lg" id="hero-volunteer-btn"><i class="ti ti-user-heart" aria-hidden="true"></i> Become a Volunteer</button>
+    </div>
+    <div class="hero-stats">
+      <div><div class="hero-stat-num">1,200+</div><div class="hero-stat-label">Registered Users</div></div>
+      <div><div class="hero-stat-num">34</div><div class="hero-stat-label">Verified Volunteers</div></div>
+      <div><div class="hero-stat-num">7 min</div><div class="hero-stat-label">Avg Response Time</div></div>
+    </div>
+  </div>
+  <div class="hero-visual">
+    <div class="float-badge b1"><i class="ti ti-map-pin" aria-hidden="true"></i> Live location shared</div>
+    <div class="phone-mock">
+      <div class="phone-mock-header">
+        <div class="phone-mock-logo">bSafe</div>
+        <div class="phone-mock-tag">Your safety, always</div>
+      </div>
+      <div class="phone-mock-body">
+        <div class="sos-demo-ring"><span>SOS</span><span>HOLD TO ALERT</span></div>
+        <p class="phone-mock-hint">Hold for 3 seconds to send an emergency alert</p>
+      </div>
+    </div>
+    <div class="float-badge b2"><i class="ti ti-user-check" aria-hidden="true"></i> 3 volunteers nearby</div>
+  </div>
+</section>
+
+<section class="section" id="features">
+  <div class="section-head">
+    <div class="eyebrow">Why bSafe</div>
+    <h2>Built for real emergencies</h2>
+    <p>Every feature is designed to remove friction in the moments that matter most.</p>
+  </div>
+  <div class="feature-grid">
+    <div class="card feature-card">
+      <div class="feature-icon" style="background:var(--rose-light);color:var(--rose);"><i class="ti ti-bell-ringing" aria-hidden="true"></i></div>
+      <h3>One-Click SOS</h3>
+      <p>A hold-to-confirm emergency button sends instant alerts to your contacts and nearby volunteers.</p>
+    </div>
+    <div class="card feature-card">
+      <div class="feature-icon" style="background:var(--teal-light);color:var(--teal);"><i class="ti ti-map-pin" aria-hidden="true"></i></div>
+      <h3>Live Location Sharing</h3>
+      <p>Your real-time location is shared with responders the moment an alert is triggered.</p>
+    </div>
+    <div class="card feature-card">
+      <div class="feature-icon" style="background:var(--blue-light);color:var(--blue);"><i class="ti ti-user-check" aria-hidden="true"></i></div>
+      <h3>Verified Responders</h3>
+      <p>Every volunteer and support team is ID-verified by our admin team before activation.</p>
+    </div>
+    <div class="card feature-card">
+      <div class="feature-icon" style="background:var(--amber-light);color:var(--amber);"><i class="ti ti-shield" aria-hidden="true"></i></div>
+      <h3>Safe Zones Map</h3>
+      <p>View nearby police stations, hospitals, and helplines in one tap.</p>
+    </div>
+    <div class="card feature-card">
+      <div class="feature-icon" style="background:var(--purple-light);color:var(--purple);"><i class="ti ti-history" aria-hidden="true"></i></div>
+      <h3>Alert History</h3>
+      <p>Track every incident, responder, and response time in your personal history.</p>
+    </div>
+    <div class="card feature-card">
+      <div class="feature-icon" style="background:var(--rose-light);color:var(--rose);"><i class="ti ti-chart-bar" aria-hidden="true"></i></div>
+      <h3>Admin Oversight</h3>
+      <p>Coordinators monitor alerts, manage volunteers, and generate performance reports.</p>
+    </div>
+  </div>
+</section>
+
+<section class="roles-section">
+  <div class="section" style="padding-top:60px;padding-bottom:60px;">
+    <div class="section-head">
+      <div class="eyebrow">Get Started</div>
+      <h2>Choose how you'll join bSafe</h2>
+    </div>
+    <div class="roles-grid">
+      <div class="card role-card">
+        <div class="role-icon" style="background:var(--rose-light);color:var(--rose);"><i class="ti ti-user" aria-hidden="true"></i></div>
+        <h3>I need safety assistance</h3>
+        <p>Create your safety profile, add emergency contacts, and get instant access to the SOS network.</p>
+        <button class="btn btn-primary btn-block" data-role-signup="woman">Sign Up as User</button>
+      </div>
+      <div class="card role-card">
+        <div class="role-icon" style="background:var(--teal-light);color:var(--teal);"><i class="ti ti-user-heart" aria-hidden="true"></i></div>
+        <h3>I want to volunteer</h3>
+        <p>Join our verified responder network and help women in your area during emergencies.</p>
+        <button class="btn btn-teal btn-block" data-role-signup="volunteer">Register as Volunteer</button>
+      </div>
+      <div class="card role-card">
+        <div class="role-icon" style="background:var(--blue-light);color:var(--blue);"><i class="ti ti-shield-lock" aria-hidden="true"></i></div>
+        <h3>I'm an administrator</h3>
+        <p>Monitor alerts, verify volunteers, manage safe zones, and generate reports.</p>
+        <button class="btn btn-secondary btn-block" id="admin-login-btn">Admin Sign In</button>
+      </div>
+    </div>
+  </div>
+</section>
+
+<footer>
+  &copy; 2026 bSafe — Women Safety & Emergency Assistance Platform. Built for Unified Mentor.
+  <br/><br/>
+  <button class="btn btn-ghost btn-sm" id="reset-demo-btn"><i class="ti ti-refresh" aria-hidden="true"></i> Reset Demo Data</button>
+</footer>
+
+<script src="js/store.js"></script>
+<script src="js/ui.js"></script>
+<script>
+const UI = window.bsafeUI;
+
+/* If already logged in, redirect to the right home */
+(async function checkSession() {
+  const user = await Store.getCurrentUser();
+  if (user) {
+    const home = window.bsafeUtil.roleHome(user.role);
+    window.location.href = home;
+  }
+})();
+
+function authModal(defaultMode = 'login', defaultRole = 'woman') {
+  const html = `
+    <div class="modal-header">
+      <span class="modal-title">Welcome to bSafe</span>
+      <div class="modal-close" data-close-modal><i class="ti ti-x" aria-hidden="true"></i></div>
+    </div>
+    <div class="modal-body">
+      <div style="display:flex;background:var(--gray-100);border-radius:var(--r-md);padding:3px;">
+        <button type="button" class="auth-tab btn-sm" data-mode="login" style="flex:1;border-radius:9px;padding:8px;font-weight:600;">Sign In</button>
+        <button type="button" class="auth-tab btn-sm" data-mode="signup" style="flex:1;border-radius:9px;padding:8px;font-weight:600;">Create Account</button>
+      </div>
+
+      <div id="role-select" style="display:flex;flex-direction:column;gap:8px;">
+        <button type="button" class="role-pick" data-role="woman" style="display:flex;align-items:center;gap:10px;padding:11px 13px;border:1.5px solid var(--gray-200);border-radius:var(--r-md);font-size:13px;font-weight:500;text-align:left;">
+          <i class="ti ti-user" aria-hidden="true" style="font-size:18px;"></i> I need safety assistance
+        </button>
+        <button type="button" class="role-pick" data-role="volunteer" style="display:flex;align-items:center;gap:10px;padding:11px 13px;border:1.5px solid var(--gray-200);border-radius:var(--r-md);font-size:13px;font-weight:500;text-align:left;">
+          <i class="ti ti-user-heart" aria-hidden="true" style="font-size:18px;"></i> I'm a Volunteer / Support Team
+        </button>
+      </div>
+
+      <form id="auth-form" style="display:flex;flex-direction:column;gap:14px;">
+        <div class="form-group signup-only hidden">
+          <label>Full Name</label>
+          <div class="input-wrap"><i class="ti ti-user" aria-hidden="true"></i><input type="text" id="f-name" placeholder="Your full name" /></div>
+        </div>
+        <div class="form-group">
+          <label>Phone Number</label>
+          <div class="input-wrap"><i class="ti ti-phone" aria-hidden="true"></i><input type="tel" id="f-phone" placeholder="+91 98765 43210" required /></div>
+        </div>
+        <div class="form-group signup-only hidden">
+          <label>Email (optional)</label>
+          <div class="input-wrap"><i class="ti ti-mail" aria-hidden="true"></i><input type="email" id="f-email" placeholder="you@example.com" /></div>
+        </div>
+        <div class="form-group">
+          <label>Password</label>
+          <div class="input-wrap"><i class="ti ti-lock" aria-hidden="true"></i><input type="password" id="f-password" placeholder="••••••••" required minlength="4" /></div>
+        </div>
+        <div id="auth-error" class="field-error hidden"></div>
+        <button type="submit" class="btn btn-primary btn-block" id="auth-submit-btn">
+          Sign In <i class="ti ti-arrow-right" aria-hidden="true"></i>
+        </button>
+      </form>
+
+      <div style="text-align:center;font-size:11.5px;color:var(--gray-400);">
+        Demo login — Woman: <strong>+91 98765 43210</strong> / <strong>demo1234</strong><br/>
+        Volunteer: <strong>+91 99888 11111</strong> / <strong>demo1234</strong>
+      </div>
+    </div>
+  `;
+  const { overlay, close } = UI.openModal(html);
+
+  let mode = defaultMode;
+  let role = defaultRole;
+
+  function render() {
+    localQsa('.auth-tab', overlay).forEach(t => {
+      const active = t.dataset.mode === mode;
+      t.style.background = active ? '#fff' : 'transparent';
+      t.style.color = active ? 'var(--rose)' : 'var(--gray-600)';
+      t.style.boxShadow = active ? 'var(--shadow-sm)' : 'none';
+    });
+    localQsa('.role-pick', overlay).forEach(r => {
+      const active = r.dataset.role === role;
+      r.style.borderColor = active ? 'var(--rose)' : 'var(--gray-200)';
+      r.style.background = active ? 'var(--rose-light)' : '#fff';
+      r.style.color = active ? 'var(--rose-deep)' : 'var(--gray-800)';
+    });
+    localQs('#role-select', overlay).style.display = mode === 'signup' ? 'flex' : 'none';
+    localQsa('.signup-only', overlay).forEach(el => el.classList.toggle('hidden', mode !== 'signup'));
+    localQs('#auth-submit-btn', overlay).innerHTML = mode === 'login'
+      ? 'Sign In <i class="ti ti-arrow-right"></i>'
+      : (role === 'volunteer' ? 'Continue to Volunteer Registration <i class="ti ti-arrow-right"></i>' : 'Create Account & Set Up Profile <i class="ti ti-arrow-right"></i>');
+  }
+
+  function localQs(sel, root) { return root.querySelector(sel); }
+  function localQsa(sel, root) { return Array.from(root.querySelectorAll(sel)); }
+
+  localQsa('.auth-tab', overlay).forEach(t => t.addEventListener('click', () => { mode = t.dataset.mode; render(); }));
+  localQsa('.role-pick', overlay).forEach(r => r.addEventListener('click', () => { role = r.dataset.role; render(); }));
+
+  localQs('#auth-form', overlay).addEventListener('submit', async (e) => {
+    e.preventDefault();
+    const errEl = localQs('#auth-error', overlay);
+    errEl.classList.add('hidden');
+    const submitBtn = localQs('#auth-submit-btn', overlay);
+    UI.setLoading(submitBtn, true, mode === 'login' ? 'Signing in...' : 'Creating account...');
+
+    try {
+      const phone = localQs('#f-phone', overlay).value.trim();
+      const password = localQs('#f-password', overlay).value;
+
+      if (mode === 'login') {
+        const user = await Store.login({ phone, password });
+        UI.showToast('success', 'Welcome back!', `Signed in as ${user.name}`);
+        setTimeout(() => window.location.href = window.bsafeUtil.roleHome(user.role), 500);
+      } else {
+        const name = localQs('#f-name', overlay).value.trim();
+        const email = localQs('#f-email', overlay).value.trim();
+        if (!name) throw new Error('Please enter your full name');
+
+        const user = await Store.register({ name, phone, password, role, email });
+        UI.showToast('success', 'Account created!', `Welcome to bSafe, ${name.split(' ')[0]}`);
+
+        setTimeout(() => {
+          if (role === 'volunteer') {
+            window.location.href = 'pages/volunteer-register.html';
+          } else {
+            window.location.href = 'pages/onboarding.html';
+          }
+        }, 500);
+      }
+    } catch (err) {
+      errEl.textContent = err.message;
+      errEl.classList.remove('hidden');
+      UI.setLoading(submitBtn, false);
+      render();
+    }
+  });
+
+  render();
+}
+
+document.getElementById('nav-login-btn').addEventListener('click', () => authModal('login'));
+document.getElementById('nav-signup-btn').addEventListener('click', () => authModal('signup', 'woman'));
+document.getElementById('hero-signup-btn').addEventListener('click', () => authModal('signup', 'woman'));
+document.getElementById('hero-volunteer-btn').addEventListener('click', () => authModal('signup', 'volunteer'));
+document.getElementById('admin-login-btn').addEventListener('click', () => authModal('login'));
+document.querySelectorAll('[data-role-signup]').forEach(btn => {
+  btn.addEventListener('click', () => authModal('signup', btn.dataset.roleSignup));
+});
+
+document.getElementById('reset-demo-btn').addEventListener('click', () => {
+  if (confirm('Reset all demo data? This clears your current session and restores sample data.')) {
+    Store.logout();
+    Store.resetDemoData();
+    UI.showToast('info', 'Demo data reset', 'Reload to see fresh sample data.');
+    setTimeout(() => window.location.reload(), 600);
+  }
+});
+</script>
+</body>
+</html>

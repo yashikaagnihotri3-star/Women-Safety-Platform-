@@ -1,0 +1,323 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>bSafe — Volunteer Dashboard</title>
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@latest/tabler-icons.min.css" />
+<link rel="stylesheet" href="../css/global.css" />
+<style>
+  body { background: var(--gray-100); }
+  .vd-shell { max-width: 480px; margin: 0 auto; background: var(--gray-50); min-height: 100vh; box-shadow: var(--shadow-lg); }
+  .vd-header { background: var(--teal-deep); color: #fff; padding: 20px 18px 16px; display: flex; align-items: flex-start; justify-content: space-between; }
+  .vd-title { font-family: var(--font-display); font-size: 19px; font-weight: 700; }
+  .vd-sub { font-size: 11.5px; color: rgba(255,255,255,0.7); margin-top: 3px; }
+  .vd-header-btn { width: 34px; height: 34px; border-radius: 50%; background: rgba(255,255,255,0.14); display: flex; align-items: center; justify-content: center; color: #fff; font-size: 16px; }
+
+  .vd-status-card { margin: 16px; background: var(--white); border: 1px solid var(--gray-200); border-radius: var(--r-lg); padding: 14px 16px; display: flex; align-items: center; justify-content: space-between; box-shadow: var(--shadow-sm); }
+  .vd-status-left { display: flex; align-items: center; gap: 12px; }
+  .vd-status-dot { width: 12px; height: 12px; border-radius: 50%; flex-shrink: 0; }
+  .vd-status-dot.on { background: var(--teal); box-shadow: 0 0 0 4px var(--teal-light); }
+  .vd-status-dot.off { background: var(--gray-200); }
+  .vd-status-name { font-size: 14px; font-weight: 700; }
+  .vd-status-meta { font-size: 11px; color: var(--gray-400); display: flex; align-items: center; gap: 4px; margin-top: 2px; }
+  .vd-availability-label { text-align: center; font-size: 11.5px; color: var(--gray-400); margin-top: -8px; margin-bottom: 6px; }
+  .vd-banner { margin: 0 16px 12px; display: flex; gap: 8px; background: var(--amber-light); border: 1px solid var(--amber); color: var(--amber-deep); font-size: 12px; padding: 10px 12px; border-radius: var(--r-md); line-height: 1.5; }
+
+  .vd-section { padding: 4px 16px 8px; }
+  .vd-section-title { font-size: 12px; font-weight: 700; color: var(--gray-400); letter-spacing: 0.06em; text-transform: uppercase; margin-bottom: 10px; display: flex; align-items: center; gap: 8px; }
+  .vd-badge { background: var(--rose); color: #fff; font-size: 11px; font-weight: 700; padding: 1px 7px; border-radius: 10px; }
+
+  .vd-alert-card { background: var(--white); border-radius: var(--r-lg); padding: 14px; margin-bottom: 12px; box-shadow: var(--shadow-sm); display: flex; flex-direction: column; gap: 8px; border: 1px solid var(--gray-200); }
+  .vd-alert-card.pending { border: 1px solid var(--rose); background: var(--rose-light); }
+  .vd-alert-card.active-card { border: 1px solid var(--teal); }
+  .vd-alert-top { display: flex; align-items: center; justify-content: space-between; }
+  .vd-alert-user { font-size: 14px; font-weight: 700; }
+  .vd-alert-time { font-size: 11px; color: var(--rose-deep); font-weight: 600; }
+  .vd-alert-row { display: flex; align-items: flex-start; gap: 8px; font-size: 12.5px; color: var(--gray-800); }
+  .vd-alert-row i { font-size: 15px; color: var(--gray-400); margin-top: 1px; flex-shrink: 0; }
+  .vd-alert-row.notes { color: var(--gray-600); font-style: italic; }
+  .vd-alert-actions { display: flex; gap: 8px; margin-top: 4px; }
+  .vd-mini-map { position: relative; height: 110px; border-radius: var(--r-md); overflow: hidden; }
+  .vd-status-buttons { display: flex; gap: 6px; flex-wrap: wrap; }
+  .vd-status-btn { font-size: 11.5px; font-weight: 600; color: var(--teal-deep); background: var(--teal-light); border: 1px solid var(--teal); border-radius: var(--r-full); padding: 5px 12px; transition: background 0.15s; }
+  .vd-status-btn:hover { background: #cdf0e3; }
+  .vd-status-btn.is-current { background: var(--teal); color: #fff; }
+
+  .vd-history-row { display: flex; align-items: center; gap: 10px; background: var(--white); border-radius: var(--r-md); padding: 10px 12px; margin-bottom: 8px; border: 1px solid var(--gray-200); cursor: pointer; }
+  .vd-history-row:hover { border-color: var(--gray-400); }
+
+  .vd-modal-row { display: flex; justify-content: space-between; gap: 12px; font-size: 12.5px; border-bottom: 1px solid var(--gray-100); padding-bottom: 8px; }
+  .vd-modal-row span { color: var(--gray-400); }
+  .vd-modal-row strong { text-align: right; }
+</style>
+</head>
+<body>
+
+<div class="vd-shell">
+  <header class="vd-header">
+    <div>
+      <div class="vd-title">Volunteer Dashboard</div>
+      <div class="vd-sub" id="vd-welcome">Welcome back</div>
+    </div>
+    <button class="vd-header-btn" id="vd-logout-btn" aria-label="Sign out"><i class="ti ti-logout" aria-hidden="true"></i></button>
+  </header>
+
+  <div class="vd-status-card">
+    <div class="vd-status-left">
+      <div class="vd-status-dot off" id="vd-status-dot"></div>
+      <div>
+        <p class="vd-status-name" id="vd-name"></p>
+        <p class="vd-status-meta" id="vd-verification"></p>
+      </div>
+    </div>
+    <button class="toggle" id="vd-availability-toggle"><span class="toggle-thumb"></span></button>
+  </div>
+  <p class="vd-availability-label" id="vd-availability-label"></p>
+
+  <div class="vd-banner hidden" id="vd-pending-banner">
+    <i class="ti ti-info-circle" aria-hidden="true"></i>
+    Your account is pending admin verification. You'll start receiving live alerts once verified.
+  </div>
+
+  <section class="vd-section">
+    <p class="vd-section-title">Incoming Alerts <span class="vd-badge hidden" id="incoming-badge"></span></p>
+    <div id="incoming-list"></div>
+  </section>
+
+  <section class="vd-section hidden" id="active-section">
+    <p class="vd-section-title">Active Response</p>
+    <div id="active-list"></div>
+  </section>
+
+  <section class="vd-section">
+    <p class="vd-section-title">History</p>
+    <div id="vd-history-list"></div>
+  </section>
+
+  <div style="height:20px;"></div>
+</div>
+
+<script src="../js/store.js"></script>
+<script src="../js/ui.js"></script>
+<script src="../js/maps.js"></script>
+<script>
+const UI = window.bsafeUI;
+
+let user = null;
+let volunteer = null;
+let myPos = { lat: 28.5750, lng: 77.3300 };
+let pollTimer = null;
+
+(async function init() {
+  user = Store.requireAuth(['volunteer']);
+  if (!user) return;
+
+  volunteer = await Store.getVolunteerByUserId(user.id);
+  if (!volunteer) { window.location.href = 'volunteer-register.html'; return; }
+
+  myPos = await UI.getCurrentPosition();
+  await Store.updateLocation(user.id, myPos);
+
+  UI.qs('#vd-welcome').textContent = `Welcome back, ${user.name.split(' ')[0]}`;
+  UI.qs('#vd-name').textContent = user.name;
+  UI.qs('#vd-logout-btn').addEventListener('click', () => { Store.logout(); window.location.href = '../index.html'; });
+
+  bindAvailabilityToggle();
+  await refreshAll();
+  pollTimer = setInterval(refreshAll, 3000);
+})();
+
+function bindAvailabilityToggle() {
+  UI.qs('#vd-availability-toggle').addEventListener('click', async (e) => {
+    const isOn = e.currentTarget.classList.contains('on');
+    const next = isOn ? 'offline' : 'available';
+    volunteer = await Store.setVolunteerAvailability(user.id, next);
+    renderAvailability();
+    UI.showToast('info', next === 'available' ? 'You are now Available' : 'You are now Offline', '');
+  });
+}
+
+function renderAvailability() {
+  const on = volunteer.availability === 'available';
+  UI.qs('#vd-availability-toggle').classList.toggle('on', on);
+  UI.qs('#vd-status-dot').classList.toggle('on', on);
+  UI.qs('#vd-status-dot').classList.toggle('off', !on);
+  UI.qs('#vd-availability-label').textContent = volunteer.availability === 'available'
+    ? 'You are Available for alerts'
+    : volunteer.availability === 'busy' ? 'You are currently Busy with a response' : 'You are Offline — alerts paused';
+
+  UI.qs('#vd-verification').innerHTML = volunteer.verification === 'verified'
+    ? '<i class="ti ti-rosette-discount-check" style="color:var(--teal);font-size:13px;"></i> Verified Volunteer'
+    : '<i class="ti ti-clock-hour-4" style="color:var(--amber);font-size:13px;"></i> Verification pending';
+
+  UI.qs('#vd-pending-banner').classList.toggle('hidden', volunteer.verification === 'verified');
+}
+
+async function refreshAll() {
+  renderAvailability();
+
+  const [incoming, active, history] = await Promise.all([
+    Store.getIncomingAlerts(user.id),
+    Store.getAssignedAlerts(user.id),
+    Store.getMyAlertResponseHistory(user.id),
+  ]);
+
+  renderIncoming(incoming);
+  renderActive(active);
+  renderHistory(history);
+}
+
+function renderIncoming(list) {
+  const badge = UI.qs('#incoming-badge');
+  if (list.length > 0) { badge.textContent = list.length; badge.classList.remove('hidden'); }
+  else badge.classList.add('hidden');
+
+  const el = UI.qs('#incoming-list');
+  if (volunteer.verification !== 'verified') {
+    el.innerHTML = `<div class="empty-state"><i class="ti ti-shield-lock" aria-hidden="true"></i><p>Alerts will appear here once your account is verified.</p></div>`;
+    return;
+  }
+  if (volunteer.availability !== 'available') {
+    el.innerHTML = `<div class="empty-state"><i class="ti ti-moon" aria-hidden="true"></i><p>Go "Available" to start receiving alerts.</p></div>`;
+    return;
+  }
+  if (list.length === 0) {
+    el.innerHTML = `<div class="empty-state"><i class="ti ti-bell-off" aria-hidden="true"></i><p>No new alerts right now</p></div>`;
+    return;
+  }
+
+  el.innerHTML = list.map(a => {
+    const dist = a.location ? UI.distanceKm(myPos, a.location) : null;
+    return `
+    <div class="vd-alert-card pending">
+      <div class="vd-alert-top">
+        <span class="vd-alert-user">${UI.escapeHtml(a.raisedByUser?.name || 'User')}</span>
+        <span class="vd-alert-time">${UI.timeAgo(a.createdAt)}</span>
+      </div>
+      <div class="vd-alert-row"><i class="ti ti-map-pin" aria-hidden="true"></i>${UI.escapeHtml(a.address)} <span style="color:var(--gray-400);">· ${UI.formatDistance(dist)}</span></div>
+      ${a.notes ? `<div class="vd-alert-row notes"><i class="ti ti-message-circle" aria-hidden="true"></i>${UI.escapeHtml(a.notes)}</div>` : ''}
+      <div class="vd-alert-actions">
+        <button class="btn btn-secondary" style="flex:1;" data-decline="${a.id}"><i class="ti ti-x" aria-hidden="true"></i> Decline</button>
+        <button class="btn btn-primary" style="flex:1;" data-accept="${a.id}"><i class="ti ti-check" aria-hidden="true"></i> Accept</button>
+      </div>
+    </div>`;
+  }).join('');
+
+  UI.qsa('[data-accept]').forEach(btn => btn.addEventListener('click', async () => {
+    UI.setLoading(btn, true, 'Accepting...');
+    try {
+      await Store.acceptAlert(btn.dataset.accept, user.id);
+      UI.showToast('success', 'Alert accepted', 'Navigate to the user\'s location.');
+      await refreshAll();
+    } catch (err) {
+      UI.showToast('error', 'Could not accept', err.message);
+      UI.setLoading(btn, false);
+    }
+  }));
+  UI.qsa('[data-decline]').forEach(btn => btn.addEventListener('click', async () => {
+    await Store.declineAlert(btn.dataset.decline, user.id);
+    UI.showToast('info', 'Alert declined', '');
+    await refreshAll();
+  }));
+}
+
+const STATUS_FLOW = ['accepted', 'en_route', 'arrived', 'assisting', 'resolved'];
+const STATUS_LABELS = { accepted: 'Accepted', en_route: 'En Route', arrived: 'Arrived', assisting: 'Assisting', resolved: 'Resolved' };
+
+function renderActive(list) {
+  const section = UI.qs('#active-section');
+  section.classList.toggle('hidden', list.length === 0);
+  if (list.length === 0) return;
+
+  UI.qs('#active-list').innerHTML = list.map(a => {
+    const dist = a.location ? UI.distanceKm(myPos, a.location) : null;
+    return `
+    <div class="vd-alert-card active-card">
+      <div class="vd-alert-top">
+        <span class="vd-alert-user">${UI.escapeHtml(a.raisedByUser?.name || 'User')}</span>
+        <span class="badge badge-teal">${STATUS_LABELS[a.status] || a.status}</span>
+      </div>
+      <div class="vd-alert-row"><i class="ti ti-map-pin" aria-hidden="true"></i>${UI.escapeHtml(a.address)} <span style="color:var(--gray-400);">· ${UI.formatDistance(dist)}</span></div>
+      ${a.notes ? `<div class="vd-alert-row notes"><i class="ti ti-message-circle" aria-hidden="true"></i>${UI.escapeHtml(a.notes)}</div>` : ''}
+
+      <div class="vd-mini-map" data-map-id="${a.id}"></div>
+
+      <div>
+        <p style="font-size:11px;color:var(--gray-400);margin-bottom:6px;">Update response status</p>
+        <div class="vd-status-buttons">
+          ${STATUS_FLOW.map(s => `<button class="vd-status-btn ${a.status === s ? 'is-current' : ''}" data-status="${s}" data-alert="${a.id}">${STATUS_LABELS[s]}</button>`).join('')}
+        </div>
+      </div>
+
+      <div class="vd-alert-actions">
+        <a class="btn btn-secondary" style="flex:1;" href="tel:${a.raisedByUser?.phone || ''}"><i class="ti ti-phone-call" aria-hidden="true"></i> Call User</a>
+        <button class="btn btn-teal" style="flex:1;" data-status="resolved" data-alert="${a.id}"><i class="ti ti-checkbox" aria-hidden="true"></i> Mark Resolved</button>
+      </div>
+    </div>`;
+  }).join('');
+
+  // Render mini maps
+  list.forEach(async a => {
+    const container = document.querySelector(`[data-map-id="${a.id}"]`);
+    if (!container) return;
+    await window.bsafeMaps.renderMap(container, {
+      center: a.location,
+      zoom: 14,
+      markers: [
+        { lat: a.location.lat, lng: a.location.lng, type: 'user', label: a.raisedByUser?.name || 'User' },
+        { lat: myPos.lat, lng: myPos.lng, type: 'volunteer', label: 'You' },
+      ],
+    });
+  });
+
+  UI.qsa('[data-status]').forEach(btn => btn.addEventListener('click', async () => {
+    UI.setLoading(btn, true, '...');
+    try {
+      await Store.updateAlertStatus(btn.dataset.alert, user.id, btn.dataset.status);
+      if (btn.dataset.status === 'resolved') UI.showToast('success', 'Alert resolved', 'Great work — you\'re available again.');
+      await refreshAll();
+    } catch (err) {
+      UI.showToast('error', 'Update failed', err.message);
+      UI.setLoading(btn, false);
+    }
+  }));
+}
+
+function renderHistory(list) {
+  const el = UI.qs('#vd-history-list');
+  if (list.length === 0) {
+    el.innerHTML = `<div class="empty-state"><i class="ti ti-history" aria-hidden="true"></i><p>No past alerts yet</p></div>`;
+    return;
+  }
+  el.innerHTML = list.map(a => `
+    <div class="vd-history-row" data-detail="${a.id}">
+      <i class="ti ${a.status === 'resolved' ? 'ti-circle-check' : 'ti-circle-x'}" style="font-size:18px;color:${a.status === 'resolved' ? 'var(--teal)' : 'var(--gray-200)'};" aria-hidden="true"></i>
+      <div style="flex:1;">
+        <p style="font-size:12.5px;font-weight:600;">${UI.escapeHtml(a.raisedByUser?.name || 'User')}</p>
+        <p style="font-size:11px;color:var(--gray-400);margin-top:2px;">${UI.escapeHtml(a.address)}</p>
+      </div>
+      <span class="badge ${a.status === 'resolved' ? 'badge-teal' : 'badge-gray'}">${a.status === 'resolved' ? 'Resolved' : 'Declined'}</span>
+    </div>`).join('');
+
+  const data = {};
+  list.forEach(a => data[a.id] = a);
+  UI.qsa('[data-detail]').forEach(row => row.addEventListener('click', () => showIncidentDetail(data[row.dataset.detail])));
+}
+
+function showIncidentDetail(a) {
+  const html = `
+    <div class="modal-header"><span class="modal-title">Incident Details</span><div class="modal-close" data-close-modal><i class="ti ti-x"></i></div></div>
+    <div class="modal-body">
+      <div class="vd-modal-row"><span>Raised by</span><strong>${UI.escapeHtml(a.raisedByUser?.name || '—')}</strong></div>
+      <div class="vd-modal-row"><span>Location</span><strong>${UI.escapeHtml(a.address)}</strong></div>
+      <div class="vd-modal-row"><span>Date</span><strong>${UI.formatDateTime(a.createdAt)}</strong></div>
+      <div class="vd-modal-row"><span>Notes</span><strong>${UI.escapeHtml(a.notes || '—')}</strong></div>
+      <div class="vd-modal-row"><span>Status</span><strong style="text-transform:capitalize;">${a.status}</strong></div>
+      ${a.responseTimeSeconds != null ? `<div class="vd-modal-row"><span>Response time</span><strong>${Math.round(a.responseTimeSeconds/60)} min</strong></div>` : ''}
+    </div>`;
+  UI.openModal(html);
+}
+</script>
+</body>
+</html>

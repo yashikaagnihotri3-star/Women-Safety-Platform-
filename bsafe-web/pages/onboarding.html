@@ -1,0 +1,229 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Set Up Your Safety Profile — bSafe</title>
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@latest/tabler-icons.min.css" />
+<link rel="stylesheet" href="../css/global.css" />
+<style>
+  body { min-height: 100vh; display: flex; align-items: center; justify-content: center; padding: 24px; }
+  .ob-card { background: var(--white); border-radius: var(--r-xl); padding: 32px 30px; width: 100%; max-width: 480px; box-shadow: var(--shadow-lg); display: flex; flex-direction: column; gap: 22px; }
+  .ob-title { font-family: var(--font-display); font-size: 23px; font-weight: 700; }
+  .ob-sub { font-size: 13px; color: var(--gray-600); margin-top: 4px; }
+
+  .steps { display: flex; align-items: center; }
+  .step-wrap { display: flex; align-items: center; flex: 1; position: relative; }
+  .step-wrap:last-child { flex: 0; }
+  .step-dot { width: 28px; height: 28px; border-radius: 50%; background: var(--gray-100); border: 1.5px solid var(--gray-200); display: flex; align-items: center; justify-content: center; font-size: 12px; font-weight: 700; color: var(--gray-400); flex-shrink: 0; transition: all 0.2s; }
+  .step-wrap.done .step-dot { background: var(--rose); border-color: var(--rose); color: #fff; }
+  .step-wrap.current .step-dot { border-color: var(--rose); color: var(--rose); }
+  .step-line { flex: 1; height: 2px; background: var(--gray-100); margin: 0 6px; transition: background 0.2s; }
+  .step-line.done { background: var(--rose); }
+
+  .ob-step { display: flex; flex-direction: column; gap: 16px; }
+  .ob-actions { display: flex; gap: 10px; justify-content: space-between; }
+
+  .added-contact-chip { display: flex; align-items: center; justify-content: space-between; padding: 9px 12px; background: var(--gray-50); border-radius: var(--r-md); font-size: 12.5px; }
+  .added-contact-chip .acc-name { font-weight: 600; }
+  .added-contact-chip .acc-meta { color: var(--gray-400); font-size: 11.5px; }
+  .added-contact-chip button { color: var(--rose); font-size: 16px; }
+</style>
+</head>
+<body>
+
+<div class="ob-card">
+  <div>
+    <div class="ob-title">Set Up Your Safety Profile</div>
+    <div class="ob-sub" id="ob-welcome">This helps responders assist you faster in an emergency.</div>
+  </div>
+
+  <div class="steps" id="steps"></div>
+
+  <div id="step-content"></div>
+
+  <div class="ob-actions">
+    <button class="btn btn-secondary" id="back-btn">Skip for now</button>
+    <button class="btn btn-primary" id="next-btn">Continue <i class="ti ti-arrow-right" aria-hidden="true"></i></button>
+  </div>
+</div>
+
+<script src="../js/store.js"></script>
+<script src="../js/ui.js"></script>
+<script>
+const UI = window.bsafeUI;
+
+let user = null;
+let step = 0;
+const STEPS = ['Personal Details', 'Medical Info', 'Emergency Contacts'];
+
+const profile = { bloodGroup: '', medicalNotes: '', address: '', defaultSafeZone: '' };
+const newContacts = [];
+
+(async function init() {
+  user = Store.requireAuth(['woman']);
+  if (!user) return;
+  document.getElementById('ob-welcome').textContent = `Welcome, ${user.name.split(' ')[0]} — this helps responders assist you faster.`;
+  renderSteps();
+  renderStepContent();
+})();
+
+function renderSteps() {
+  const wrap = document.getElementById('steps');
+  wrap.innerHTML = STEPS.map((label, i) => `
+    <div class="step-wrap ${i < step ? 'done' : i === step ? 'current' : ''}">
+      <div class="step-dot">${i < step ? '<i class="ti ti-check"></i>' : i + 1}</div>
+      ${i < STEPS.length - 1 ? `<div class="step-line ${i < step ? 'done' : ''}"></div>` : ''}
+    </div>
+  `).join('');
+}
+
+function renderStepContent() {
+  const wrap = document.getElementById('step-content');
+  const backBtn = document.getElementById('back-btn');
+  const nextBtn = document.getElementById('next-btn');
+
+  backBtn.textContent = step === 0 ? 'Skip for now' : '';
+  if (step > 0) backBtn.innerHTML = '<i class="ti ti-arrow-left" aria-hidden="true"></i> Back';
+  nextBtn.innerHTML = step === STEPS.length - 1
+    ? 'Finish Setup <i class="ti ti-check" aria-hidden="true"></i>'
+    : 'Continue <i class="ti ti-arrow-right" aria-hidden="true"></i>';
+
+  if (step === 0) {
+    wrap.innerHTML = `
+      <div class="ob-step">
+        <div class="form-group">
+          <label>Home / Frequent Address</label>
+          <div class="input-wrap"><i class="ti ti-home" aria-hidden="true"></i>
+            <textarea id="f-address" placeholder="e.g. Flat 302, Green Residency, Sector 12, Noida">${profile.address}</textarea>
+          </div>
+        </div>
+        <div class="form-group">
+          <label>Default Safe Zone</label>
+          <div class="input-wrap"><i class="ti ti-shield" aria-hidden="true"></i>
+            <input type="text" id="f-zone" placeholder="e.g. Home, Office, College" value="${profile.defaultSafeZone}" />
+          </div>
+        </div>
+      </div>`;
+  } else if (step === 1) {
+    wrap.innerHTML = `
+      <div class="ob-step">
+        <div class="form-group">
+          <label>Blood Group</label>
+          <div class="input-wrap"><i class="ti ti-droplet" aria-hidden="true"></i>
+            <select id="f-blood">
+              <option value="">Select blood group</option>
+              ${['A+','A-','B+','B-','AB+','AB-','O+','O-'].map(bg => `<option value="${bg}" ${profile.bloodGroup === bg ? 'selected' : ''}>${bg}</option>`).join('')}
+            </select>
+          </div>
+        </div>
+        <div class="form-group">
+          <label>Medical Notes (allergies, conditions, etc.)</label>
+          <div class="input-wrap"><i class="ti ti-notes" aria-hidden="true"></i>
+            <textarea id="f-medical" placeholder="e.g. Asthma, allergic to penicillin...">${profile.medicalNotes}</textarea>
+          </div>
+        </div>
+      </div>`;
+  } else if (step === 2) {
+    wrap.innerHTML = `
+      <div class="ob-step">
+        <form id="contact-form" style="display:flex;flex-direction:column;gap:12px;">
+          <div class="form-group">
+            <label>Contact Name</label>
+            <div class="input-wrap"><i class="ti ti-user" aria-hidden="true"></i><input type="text" id="c-name" placeholder="e.g. Mom" /></div>
+          </div>
+          <div class="form-row">
+            <div class="form-group">
+              <label>Relation</label>
+              <div class="input-wrap"><i class="ti ti-heart" aria-hidden="true"></i><input type="text" id="c-relation" placeholder="Family / Friend" /></div>
+            </div>
+            <div class="form-group">
+              <label>Phone</label>
+              <div class="input-wrap"><i class="ti ti-phone" aria-hidden="true"></i><input type="tel" id="c-phone" placeholder="+91..." /></div>
+            </div>
+          </div>
+          <button type="submit" class="btn btn-teal btn-block"><i class="ti ti-plus" aria-hidden="true"></i> Add Contact</button>
+        </form>
+        <div id="contact-chips" style="display:flex;flex-direction:column;gap:6px;"></div>
+      </div>`;
+
+    document.getElementById('contact-form').addEventListener('submit', (e) => {
+      e.preventDefault();
+      const name = document.getElementById('c-name').value.trim();
+      const relation = document.getElementById('c-relation').value.trim();
+      const phone = document.getElementById('c-phone').value.trim();
+      if (!name || !phone) { UI.showToast('error', 'Missing info', 'Name and phone are required'); return; }
+      newContacts.push({ name, relation, phone });
+      document.getElementById('contact-form').reset();
+      renderContactChips();
+    });
+    renderContactChips();
+  }
+}
+
+function renderContactChips() {
+  const el = document.getElementById('contact-chips');
+  if (!el) return;
+  el.innerHTML = newContacts.map((c, i) => `
+    <div class="added-contact-chip">
+      <div><span class="acc-name">${c.name}</span> <span class="acc-meta">${c.relation ? '· ' + c.relation : ''}</span></div>
+      <button data-remove="${i}"><i class="ti ti-x" aria-hidden="true"></i></button>
+    </div>
+  `).join('');
+  el.querySelectorAll('[data-remove]').forEach(btn => {
+    btn.addEventListener('click', () => {
+      newContacts.splice(parseInt(btn.dataset.remove), 1);
+      renderContactChips();
+    });
+  });
+}
+
+function saveCurrentStepData() {
+  if (step === 0) {
+    profile.address = document.getElementById('f-address')?.value.trim() || '';
+    profile.defaultSafeZone = document.getElementById('f-zone')?.value.trim() || '';
+  } else if (step === 1) {
+    profile.bloodGroup = document.getElementById('f-blood')?.value || '';
+    profile.medicalNotes = document.getElementById('f-medical')?.value.trim() || '';
+  }
+}
+
+document.getElementById('back-btn').addEventListener('click', () => {
+  if (step === 0) {
+    window.location.href = 'app.html';
+    return;
+  }
+  saveCurrentStepData();
+  step--;
+  renderSteps();
+  renderStepContent();
+});
+
+document.getElementById('next-btn').addEventListener('click', async () => {
+  saveCurrentStepData();
+
+  if (step < STEPS.length - 1) {
+    step++;
+    renderSteps();
+    renderStepContent();
+    return;
+  }
+
+  // Finish
+  const nextBtn = document.getElementById('next-btn');
+  UI.setLoading(nextBtn, true, 'Saving...');
+  try {
+    await Store.updateSafetyProfile(user.id, profile);
+    for (const c of newContacts) {
+      await Store.addContact(user.id, c);
+    }
+    UI.showToast('success', 'Profile complete!', 'Your safety profile has been saved.');
+    setTimeout(() => window.location.href = 'app.html', 600);
+  } catch (err) {
+    UI.showToast('error', 'Something went wrong', err.message);
+    UI.setLoading(nextBtn, false);
+  }
+});
+</script>
+</body>
+</html>
